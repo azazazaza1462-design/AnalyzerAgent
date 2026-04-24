@@ -1,17 +1,51 @@
-var builder = WebApplication.CreateBuilder(args);
+using Lendlogic.AnalyzersApi.Common.Extensions;
+using Serilog;
 
-// Add services to the container.
+// ─── Serilog bootstrap ───
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-builder.Services.AddControllers();
+try
+{
+    var builder = WebApplication.CreateBuilder(args);
 
-var app = builder.Build();
+    // ─── Serilog ───
+    builder.Host.UseSerilog((ctx, lc) => lc
+        .ReadFrom.Configuration(ctx.Configuration));
 
-// Configure the HTTP request pipeline.
+    // ─── HTTP basics ───
+    builder.Services.AddHttpContextAccessor();
 
-app.UseHttpsRedirection();
+    // ─── Health Checks ───
+    builder.Services.AddHealthChecks()
+        .AddNpgSql(builder.Configuration.GetConnectionString("Application")!);
 
-app.UseAuthorization();
+    // ─── Service registration ───
+    builder.Services
+        .AddCorsPolicy(builder.Configuration, builder.Environment)
+        .AddAuthenticationServices(builder.Configuration)
+        .AddRateLimiting()
+        .AddPersistence(builder.Configuration)
+        .AddApplicationServices(builder.Configuration, builder.Environment);
 
-app.MapControllers();
+    // ═══════════════════════════════════════
+    var app = builder.Build();
+    // ═══════════════════════════════════════
 
-app.Run();
+    await app.MigrateDatabaseAsync();
+
+    app.UseRequestPipeline();
+
+    await app.RunAsync();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
+
+public partial class Program;

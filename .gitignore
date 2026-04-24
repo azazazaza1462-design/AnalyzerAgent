@@ -421,3 +421,9 @@ FodyWeavers.xsd
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# User-uploaded files (runtime storage for POST /api/v1/file/upload)
+uploads/
+
+# Local environment overrides
+.env

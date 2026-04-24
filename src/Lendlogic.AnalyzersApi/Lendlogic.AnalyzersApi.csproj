@@ -4,6 +4,57 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Lendlogic.AnalyzersApi</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lendlogic.AnalyzersApi.Tests" />
+    <InternalsVisibleTo Include="Lendlogic.AnalyzersApi.Tests.Integration" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Mediator (source-generated CQRS) -->
+    <PackageReference Include="Mediator.Abstractions" Version="3.*" />
+    <PackageReference Include="Mediator.SourceGenerator" Version="3.*" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+
+    <!-- Carter (minimal API endpoint modules) -->
+    <PackageReference Include="Carter" Version="8.*" />
+
+    <!-- FluentValidation -->
+    <PackageReference Include="FluentValidation" Version="11.*" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
+
+    <!-- ErrorOr (result pattern) -->
+    <PackageReference Include="ErrorOr" Version="2.*" />
+
+    <!-- EF Core + PostgreSQL -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.*">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.*" />
+    <PackageReference Include="EFCore.NamingConventions" Version="10.*" />
+
+    <!-- Authentication (Entra ID + internal JWT) -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.*" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="4.*" />
+
+    <!-- Serilog -->
+    <PackageReference Include="Serilog.AspNetCore" Version="9.*" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.*" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="9.*" />
+    <PackageReference Include="Serilog.Exceptions" Version="8.*" />
+    <PackageReference Include="Serilog.Expressions" Version="5.*" />
+
+    <!-- API Versioning -->
+    <PackageReference Include="Asp.Versioning.Http" Version="8.*" />
+
+    <!-- Health Checks -->
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.*" />
+
+    <!-- Swagger / OpenAPI -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.*" />
+  </ItemGroup>
 
 </Project>
