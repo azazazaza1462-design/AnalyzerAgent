@@ -9,4 +9,8 @@
   <Folder Name="/web-api/">
     <Project Path="Lendlogic.AnalyzersApi/Lendlogic.AnalyzersApi.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="../tests/Lendlogic.AnalyzersApi.Tests/Lendlogic.AnalyzersApi.Tests.csproj" />
+    <Project Path="../tests/Lendlogic.AnalyzersApi.Tests.Integration/Lendlogic.AnalyzersApi.Tests.Integration.csproj" />
+  </Folder>
 </Solution>
