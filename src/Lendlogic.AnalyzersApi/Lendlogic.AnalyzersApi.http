@@ -1,0 +1,6 @@
+@Lendlogic.AnalyzersApi_HostAddress = http://localhost:5049
+
+GET {{Lendlogic.AnalyzersApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

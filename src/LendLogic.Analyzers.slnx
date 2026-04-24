@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/agent/">
+    <Project Path="Lendlogic.Agent.Core/Lendlogic.Agent.Core.csproj" />
+    <Project Path="Lendlogic.Agent/Lendlogic.Agent.csproj" />
+  </Folder>
+  <Folder Name="/data-access/">
+    <Project Path="Lendlogic.Analyzers.DataAccess/Lendlogic.Analyzers.DataAccess.csproj" />
+  </Folder>
+  <Folder Name="/web-api/">
+    <Project Path="Lendlogic.AnalyzersApi/Lendlogic.AnalyzersApi.csproj" />
+  </Folder>
+</Solution>
