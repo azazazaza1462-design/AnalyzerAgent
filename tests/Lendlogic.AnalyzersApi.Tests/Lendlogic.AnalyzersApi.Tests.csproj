@@ -21,6 +21,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <!-- Pin transitive DataProtection to a patched version (CVE GHSA-9mv3-2cwr-p262) -->
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="10.0.7" />
   </ItemGroup>
 
   <ItemGroup>
