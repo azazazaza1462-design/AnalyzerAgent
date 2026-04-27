@@ -8,7 +8,9 @@ using Lendlogic.AnalyzersApi.Common.Behaviors;
 using Lendlogic.AnalyzersApi.Data;
 using Lendlogic.AnalyzersApi.Services.Storage;
 using Mediator;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -66,7 +68,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IInternalJwtService, InternalJwtService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        services.Configure<ApiKeyOptions>(config.GetSection(ApiKeyOptions.SectionName));
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
+                AuthConstants.ApiKey.SchemeName, _ => { })
             .AddJwtBearer(options =>
             {
                 options.MapInboundClaims = false;
@@ -103,9 +109,14 @@ public static class ServiceCollectionExtensions
 
         services.AddAuthorization(options =>
         {
-            options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .Build();
+
+            options.AddPolicy(AuthConstants.AuthorizationPolicies.Agent, policy =>
+                policy.AddAuthenticationSchemes(AuthConstants.ApiKey.SchemeName)
+                    .RequireAuthenticatedUser()
+                    .RequireRole(AuthConstants.Roles.Agent));
         });
 
         return services;
