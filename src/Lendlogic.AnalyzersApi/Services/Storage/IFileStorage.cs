@@ -7,4 +7,8 @@ public interface IFileStorage
         string originalName,
         string contentType,
         CancellationToken cancellationToken = default);
+
+    Task<Stream> OpenReadAsync(
+        string storagePath,
+        CancellationToken cancellationToken = default);
 }

@@ -27,4 +27,16 @@ public sealed class LocalFileStorage(IOptions<FileStorageOptions> options) : IFi
 
         return relativePath.Replace('\\', '/');
     }
+
+    public Task<Stream> OpenReadAsync(
+        string storagePath,
+        CancellationToken cancellationToken = default)
+    {
+        var fullPath = Path.Combine(_root, storagePath.Replace('/', Path.DirectorySeparatorChar));
+        if (!File.Exists(fullPath))
+            throw new FileNotFoundException("Stored file not found.", storagePath);
+
+        Stream stream = File.OpenRead(fullPath);
+        return Task.FromResult(stream);
+    }
 }
