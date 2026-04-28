@@ -1,5 +1,7 @@
 using Carter;
+using Lendlogic.AnalyzersApi.Common.Auth;
 using Lendlogic.AnalyzersApi.Common.Extensions;
+using Lendlogic.AnalyzersApi.Features.Files.Download;
 using Lendlogic.AnalyzersApi.Features.Files.Upload;
 using Mediator;
 using Microsoft.AspNetCore.Http;
@@ -10,9 +12,9 @@ public class FilesEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1/file").WithTags("Files");
+        var uploadGroup = app.MapGroup("/api/v1/file").WithTags("Files");
 
-        group.MapPost("/upload", async (
+        uploadGroup.MapPost("/upload", async (
             IFormFile file,
             IMediator mediator,
             CancellationToken cancellationToken) =>
@@ -31,8 +33,24 @@ public class FilesEndpoints : ICarterModule
             return result.Match(v => Results.Created($"/api/v1/files/{v.FileId}", v));
         })
         .WithName("UploadFile")
+        .AllowAnonymous()
         .DisableAntiforgery()
         .Accepts<IFormFile>("multipart/form-data")
         .Produces<UploadFileResponse>(StatusCodes.Status201Created);
+
+        var filesGroup = app.MapGroup("/api/v1/files").WithTags("Files");
+
+        filesGroup.MapGet("/{id:guid}", async (
+            Guid id,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await mediator.Send(new DownloadFileQuery(id), cancellationToken);
+            return result.Match(v => Results.File(v.Content, v.ContentType, v.FileName));
+        })
+        .WithName("DownloadFile")
+        .RequireAuthorization(AuthConstants.AuthorizationPolicies.Agent)
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

@@ -24,7 +24,13 @@ public class JobConfiguration : BaseEntityConfiguration<Job>
             .HasForeignKey(e => e.CallerId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Property<uint>("xmin")
+            .HasColumnName("xmin")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
+
         builder.HasIndex(e => new { e.CallerId, e.JobStatus });
         builder.HasIndex(e => e.JobStatus);
+        builder.HasIndex(e => new { e.JobStatus, e.CreatedAt });
     }
 }

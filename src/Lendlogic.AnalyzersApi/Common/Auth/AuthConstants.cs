@@ -21,4 +21,20 @@ public static class AuthConstants
     {
         public const string Auth = "auth";
     }
+
+    public static class AuthorizationPolicies
+    {
+        public const string Agent = "Agent";
+    }
+
+    public static class Roles
+    {
+        public const string Agent = "Agent";
+    }
+
+    public static class ApiKey
+    {
+        public const string SchemeName = "ApiKey";
+        public const string HeaderName = "X-Api-Key";
+    }
 }
