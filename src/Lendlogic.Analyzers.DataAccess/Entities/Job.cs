@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Lendlogic.AnalyzersApi.Data.Enums;
+using Lendlogic.Analyzers.DataAccess.Enums;
 
-namespace Lendlogic.AnalyzersApi.Data.Entities;
+namespace Lendlogic.Analyzers.DataAccess.Entities;
 
 public class Job : BaseEntity
 {

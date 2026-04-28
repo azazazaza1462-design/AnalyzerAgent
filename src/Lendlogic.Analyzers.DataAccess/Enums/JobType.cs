@@ -1,4 +1,4 @@
-namespace Lendlogic.AnalyzersApi.Data.Enums;
+namespace Lendlogic.Analyzers.DataAccess.Enums;
 
 public enum JobType
 {

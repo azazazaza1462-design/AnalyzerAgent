@@ -1,4 +1,4 @@
-namespace Lendlogic.AnalyzersApi.Data.Entities;
+namespace Lendlogic.Analyzers.DataAccess.Entities;
 
 public class Caller : BaseEntity
 {

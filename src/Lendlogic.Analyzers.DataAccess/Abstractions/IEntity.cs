@@ -1,4 +1,4 @@
-namespace Lendlogic.AnalyzersApi.Common.Interfaces;
+namespace Lendlogic.Analyzers.DataAccess.Abstractions;
 
 public interface IEntity
 {

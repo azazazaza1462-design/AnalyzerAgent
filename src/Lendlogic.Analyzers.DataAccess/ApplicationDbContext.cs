@@ -1,7 +1,7 @@
-using Lendlogic.AnalyzersApi.Data.Entities;
+using Lendlogic.Analyzers.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Lendlogic.AnalyzersApi.Data;
+namespace Lendlogic.Analyzers.DataAccess;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : DbContext(options)
