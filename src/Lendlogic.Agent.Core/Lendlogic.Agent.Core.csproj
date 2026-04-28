@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Lendlogic.Analyzers.DataAccess\Lendlogic.Analyzers.DataAccess.csproj" />
+  </ItemGroup>
+
 </Project>
