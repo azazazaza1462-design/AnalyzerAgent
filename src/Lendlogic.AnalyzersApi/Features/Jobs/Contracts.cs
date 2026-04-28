@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Lendlogic.AnalyzersApi.Data.Enums;
+using Lendlogic.Analyzers.DataAccess.Enums;
 
 namespace Lendlogic.AnalyzersApi.Features.Jobs;
 

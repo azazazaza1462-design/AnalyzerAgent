@@ -1,4 +1,4 @@
-using Lendlogic.AnalyzersApi.Data;
+using Lendlogic.Analyzers.DataAccess;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;

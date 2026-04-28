@@ -1,8 +1,8 @@
 using System.Text.Json;
 using ErrorOr;
-using Lendlogic.AnalyzersApi.Data;
-using Lendlogic.AnalyzersApi.Data.Entities;
-using Lendlogic.AnalyzersApi.Data.Enums;
+using Lendlogic.Analyzers.DataAccess;
+using Lendlogic.Analyzers.DataAccess.Entities;
+using Lendlogic.Analyzers.DataAccess.Enums;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 

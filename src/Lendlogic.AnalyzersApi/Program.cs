@@ -1,3 +1,4 @@
+using Lendlogic.Analyzers.DataAccess.Extensions;
 using Lendlogic.AnalyzersApi.Common.Extensions;
 using Serilog;
 
@@ -26,7 +27,7 @@ try
         .AddCorsPolicy(builder.Configuration, builder.Environment)
         .AddAuthenticationServices(builder.Configuration)
         .AddRateLimiting()
-        .AddPersistence(builder.Configuration)
+        .AddAnalyzersDataAccess(builder.Configuration)
         .AddApplicationServices(builder.Configuration, builder.Environment);
 
     // ═══════════════════════════════════════

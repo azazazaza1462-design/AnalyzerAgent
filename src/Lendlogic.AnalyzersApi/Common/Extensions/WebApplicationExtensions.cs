@@ -1,6 +1,6 @@
 using Carter;
 using Lendlogic.AnalyzersApi.Common.Middleware;
-using Lendlogic.AnalyzersApi.Data;
+using Lendlogic.Analyzers.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
