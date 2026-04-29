@@ -6,5 +6,9 @@ export default defineConfig({
     path: "src/services/generated",
     format: "prettier",
   },
-  plugins: ["@hey-api/typescript", "@hey-api/sdk"],
+  plugins: [
+    { name: "@hey-api/client-axios", runtimeConfigPath: "./src/services/api.ts" },
+    "@hey-api/typescript",
+    "@hey-api/sdk",
+  ],
 });
