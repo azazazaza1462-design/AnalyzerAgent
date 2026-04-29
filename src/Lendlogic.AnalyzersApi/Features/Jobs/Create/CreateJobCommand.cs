@@ -1,6 +1,6 @@
 using System.Text.Json;
 using ErrorOr;
-using Lendlogic.AnalyzersApi.Data.Enums;
+using Lendlogic.Analyzers.DataAccess.Enums;
 using Mediator;
 
 namespace Lendlogic.AnalyzersApi.Features.Jobs.Create;

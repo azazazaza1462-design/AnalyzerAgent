@@ -1,6 +1,6 @@
-using Lendlogic.AnalyzersApi.Common.Interfaces;
+using Lendlogic.Analyzers.DataAccess.Abstractions;
 
-namespace Lendlogic.AnalyzersApi.Data.Entities;
+namespace Lendlogic.Analyzers.DataAccess.Entities;
 
 public abstract class BaseEntity : IEntity
 {

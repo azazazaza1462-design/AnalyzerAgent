@@ -13,6 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Lendlogic.Analyzers.DataAccess\Lendlogic.Analyzers.DataAccess.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Mediator (source-generated CQRS) -->
     <PackageReference Include="Mediator.Abstractions" Version="3.*" />
     <PackageReference Include="Mediator.SourceGenerator" Version="3.*" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

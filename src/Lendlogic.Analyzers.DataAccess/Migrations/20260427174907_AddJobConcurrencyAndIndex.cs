@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Lendlogic.AnalyzersApi.Migrations
+namespace Lendlogic.Analyzers.DataAccess.Migrations
 {
     /// <inheritdoc />
     public partial class AddJobConcurrencyAndIndex : Migration

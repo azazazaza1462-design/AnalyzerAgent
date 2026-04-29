@@ -1,4 +1,4 @@
-using Lendlogic.AnalyzersApi.Data.Entities;
+using Lendlogic.Analyzers.DataAccess.Entities;
 
 namespace Lendlogic.AnalyzersApi.Common.Auth;
 

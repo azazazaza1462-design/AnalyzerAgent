@@ -1,8 +1,8 @@
-using Lendlogic.AnalyzersApi.Data.Entities;
+using Lendlogic.Analyzers.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Lendlogic.AnalyzersApi.Data.Configs;
+namespace Lendlogic.Analyzers.DataAccess.Configs;
 
 public class CallerConfiguration : BaseEntityConfiguration<Caller>
 {

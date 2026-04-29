@@ -1,6 +1,6 @@
 using ErrorOr;
 using Lendlogic.AnalyzersApi.Common.Auth;
-using Lendlogic.AnalyzersApi.Data;
+using Lendlogic.Analyzers.DataAccess;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 

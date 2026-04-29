@@ -1,4 +1,4 @@
-using Lendlogic.AnalyzersApi.Data;
+using Lendlogic.Analyzers.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Testcontainers.PostgreSql;

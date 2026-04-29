@@ -5,13 +5,11 @@ using Carter;
 using FluentValidation;
 using Lendlogic.AnalyzersApi.Common.Auth;
 using Lendlogic.AnalyzersApi.Common.Behaviors;
-using Lendlogic.AnalyzersApi.Data;
 using Lendlogic.AnalyzersApi.Services.Storage;
 using Mediator;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Lendlogic.AnalyzersApi.Common.Extensions;
@@ -144,25 +142,6 @@ public static class ServiceCollectionExtensions
                         PermitLimit = 10,
                         Window = TimeSpan.FromMinutes(1),
                     }));
-        });
-
-        return services;
-    }
-
-    public static IServiceCollection AddPersistence(
-        this IServiceCollection services, IConfiguration config)
-    {
-        var dataSourceBuilder = new Npgsql.NpgsqlDataSourceBuilder(
-            config.GetConnectionString("Application"));
-        dataSourceBuilder.EnableDynamicJson();
-        var dataSource = dataSourceBuilder.Build();
-
-        services.AddSingleton(dataSource); // runtime disposes on shutdown
-
-        services.AddDbContext<ApplicationDbContext>(options =>
-        {
-            options.UseNpgsql(dataSource)
-                .UseSnakeCaseNamingConvention();
         });
 
         return services;
