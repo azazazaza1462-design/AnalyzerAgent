@@ -1,5 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from "react-router";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { ProtectedRoute } from "@/components/layout/protected-route";
+import LoginPage from "@/features/auth/LoginPage";
 
 function RootLayout() {
   return (
@@ -30,13 +32,18 @@ function NotFoundPage() {
 }
 
 export const router = createBrowserRouter([
+  { path: "/login", element: <LoginPage /> },
   {
-    path: "/",
-    element: <RootLayout />,
+    element: <ProtectedRoute />,
     children: [
-      { index: true, element: <Navigate to="/jobs" replace /> },
-      { path: "jobs", element: <PlaceholderJobsPage /> },
-      { path: "*", element: <NotFoundPage /> },
+      {
+        element: <RootLayout />,
+        children: [
+          { index: true, element: <Navigate to="/jobs" replace /> },
+          { path: "jobs", element: <PlaceholderJobsPage /> },
+          { path: "*", element: <NotFoundPage /> },
+        ],
+      },
     ],
   },
 ]);

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router";
-import { Activity, ListChecks, Moon, Sun } from "lucide-react";
+import { Activity, ListChecks, LogOut, Moon, Sun } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -15,6 +15,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { useThemeMode } from "@/theme/ThemeContext";
+import { useAuthStore } from "@/stores/auth-store";
 
 const navGroups = [
   {
@@ -26,6 +27,8 @@ const navGroups = [
 export function AppSidebar() {
   const { pathname } = useLocation();
   const { mode, toggleTheme } = useThemeMode();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -87,6 +90,14 @@ export function AppSidebar() {
               <span>{mode === "dark" ? "Light mode" : "Dark mode"}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          {user && (
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={() => logout()} tooltip={user.email}>
+                <LogOut />
+                <span className="truncate">{user.email}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarFooter>
 
