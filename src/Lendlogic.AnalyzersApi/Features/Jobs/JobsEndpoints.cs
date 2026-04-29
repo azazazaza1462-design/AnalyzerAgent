@@ -17,9 +17,14 @@ public class JobsEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
+        var env = app.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
         var group = app.MapGroup("/api/v1/jobs").WithTags("Jobs");
 
-        group.MapGet("/", async (
+        // Until MSAL Entra ID is wired into the frontend, the read endpoints
+        // are gated by environment so the team can demo the UI locally
+        // without an app registration. Staging and production keep the auth
+        // requirement intact.
+        var listJobs = group.MapGet("/", async (
             JobStatus? status,
             DateTime? from,
             DateTime? to,
@@ -33,10 +38,9 @@ public class JobsEndpoints : ICarterModule
             return result.Match(Results.Ok);
         })
         .WithName("ListJobs")
-        .RequireAuthorization()
         .Produces<PagedJobs>(StatusCodes.Status200OK);
 
-        group.MapGet("/{id:guid}", async (
+        var getJob = group.MapGet("/{id:guid}", async (
             Guid id,
             IMediator mediator,
             CancellationToken cancellationToken) =>
@@ -45,9 +49,19 @@ public class JobsEndpoints : ICarterModule
             return result.Match(Results.Ok);
         })
         .WithName("GetJob")
-        .RequireAuthorization()
         .Produces<JobDetail>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound);
+
+        if (env.IsDevelopment())
+        {
+            listJobs.AllowAnonymous();
+            getJob.AllowAnonymous();
+        }
+        else
+        {
+            listJobs.RequireAuthorization();
+            getJob.RequireAuthorization();
+        }
 
         group.MapPost("/", async (
             CreateJobCommand command,
