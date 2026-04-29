@@ -1,11 +1,14 @@
 using System.Text.Json;
 using Carter;
+using Lendlogic.Analyzers.DataAccess.Enums;
 using Lendlogic.AnalyzersApi.Common.Auth;
 using Lendlogic.AnalyzersApi.Common.Extensions;
 using Lendlogic.AnalyzersApi.Features.Jobs.Claim;
 using Lendlogic.AnalyzersApi.Features.Jobs.Complete;
 using Lendlogic.AnalyzersApi.Features.Jobs.Create;
 using Lendlogic.AnalyzersApi.Features.Jobs.Fail;
+using Lendlogic.AnalyzersApi.Features.Jobs.Get;
+using Lendlogic.AnalyzersApi.Features.Jobs.List;
 using Mediator;
 
 namespace Lendlogic.AnalyzersApi.Features.Jobs;
@@ -15,6 +18,36 @@ public class JobsEndpoints : ICarterModule
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/v1/jobs").WithTags("Jobs");
+
+        group.MapGet("/", async (
+            JobStatus? status,
+            DateTime? from,
+            DateTime? to,
+            int? page,
+            int? pageSize,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var query = new ListJobsQuery(status, from, to, page ?? 1, pageSize ?? 25);
+            var result = await mediator.Send(query, cancellationToken);
+            return result.Match(Results.Ok);
+        })
+        .WithName("ListJobs")
+        .RequireAuthorization()
+        .Produces<PagedJobs>(StatusCodes.Status200OK);
+
+        group.MapGet("/{id:guid}", async (
+            Guid id,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await mediator.Send(new GetJobQuery(id), cancellationToken);
+            return result.Match(Results.Ok);
+        })
+        .WithName("GetJob")
+        .RequireAuthorization()
+        .Produces<JobDetail>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/", async (
             CreateJobCommand command,
