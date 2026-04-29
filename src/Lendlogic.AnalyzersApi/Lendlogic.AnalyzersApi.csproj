@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Lendlogic.AnalyzersApi</RootNamespace>
+    <UserSecretsId>3a6c10c4-3c28-4c49-ba27-b929dc06a53f</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
