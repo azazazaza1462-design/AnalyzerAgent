@@ -3,6 +3,7 @@ using Carter;
 using Lendlogic.Analyzers.DataAccess.Enums;
 using Lendlogic.AnalyzersApi.Common.Auth;
 using Lendlogic.AnalyzersApi.Common.Extensions;
+using Lendlogic.AnalyzersApi.Features.Jobs.Cancel;
 using Lendlogic.AnalyzersApi.Features.Jobs.Claim;
 using Lendlogic.AnalyzersApi.Features.Jobs.Complete;
 using Lendlogic.AnalyzersApi.Features.Jobs.Create;
@@ -52,15 +53,30 @@ public class JobsEndpoints : ICarterModule
         .Produces<JobDetail>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound);
 
+        var cancelJob = group.MapPost("/{id:guid}/cancel", async (
+            Guid id,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await mediator.Send(new CancelJobCommand(id), cancellationToken);
+            return result.Match(_ => Results.NoContent());
+        })
+        .WithName("CancelJob")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status409Conflict);
+
         if (env.IsDevelopment())
         {
             listJobs.AllowAnonymous();
             getJob.AllowAnonymous();
+            cancelJob.AllowAnonymous();
         }
         else
         {
             listJobs.RequireAuthorization();
             getJob.RequireAuthorization();
+            cancelJob.RequireAuthorization();
         }
 
         group.MapPost("/", async (

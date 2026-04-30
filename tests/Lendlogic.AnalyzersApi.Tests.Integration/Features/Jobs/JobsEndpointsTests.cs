@@ -101,6 +101,40 @@ public sealed class JobsEndpointsTests(PostgresFixture fixture) : IAsyncLifetime
         body.CallerName.Should().NotBeNullOrEmpty();
     }
 
+    [Theory]
+    [InlineData(JobStatus.Pending)]
+    [InlineData(JobStatus.InProgress)]
+    public async Task CancelJob_Returns204_WhenPendingOrInProgress(JobStatus startingStatus)
+    {
+        var jobId = await SeedJobAsync(startingStatus);
+
+        var response = await _client.PostAsync($"/api/v1/jobs/{jobId}/cancel", content: null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var detail = await _client.GetFromJsonAsync<JobDetail>($"/api/v1/jobs/{jobId}", JsonOptions);
+        detail!.JobStatus.Should().Be(JobStatus.Cancelled);
+        detail.FinishedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task CancelJob_Returns404_WhenNotFound()
+    {
+        var response = await _client.PostAsync($"/api/v1/jobs/{Guid.NewGuid()}/cancel", content: null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task CancelJob_Returns409_WhenAlreadyCompleted()
+    {
+        var jobId = await SeedJobAsync(JobStatus.Completed);
+
+        var response = await _client.PostAsync($"/api/v1/jobs/{jobId}/cancel", content: null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
     private async Task<Guid> SeedCallerAsync()
     {
         await using var scope = _factory.Services.CreateAsyncScope();
