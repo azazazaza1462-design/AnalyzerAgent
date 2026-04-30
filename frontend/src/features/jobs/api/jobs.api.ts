@@ -1,4 +1,11 @@
-import { listJobs, getJob, type JobDetail, type PagedJobs } from "@/services/generated";
+import {
+  listJobs,
+  getJob,
+  cancelJob as cancelJobSdk,
+  type JobDetail,
+  type PagedJobs,
+} from "@/services/generated";
+import api from "@/services/api";
 import type { JobsListParams } from "@/lib/query-keys";
 
 // The generated SDK collapses object response types to a union of their value
@@ -26,4 +33,28 @@ export async function fetchJob(id: string): Promise<JobDetail> {
     throwOnError: true,
   });
   return response.data as unknown as JobDetail;
+}
+
+export async function cancelJob(id: string): Promise<void> {
+  await cancelJobSdk({
+    path: { id },
+    throwOnError: true,
+  });
+}
+
+export interface JobResultDownload {
+  blob: Blob;
+  filename: string;
+}
+
+export async function downloadJobResult(id: string): Promise<JobResultDownload> {
+  const response = await api.get(`/api/v1/jobs/${id}/result`, {
+    responseType: "blob",
+  });
+  const cd = response.headers["content-disposition"] as string | undefined;
+  const match = cd?.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+  return {
+    blob: response.data as Blob,
+    filename: match?.[1] ?? `job-${id}.json`,
+  };
 }

@@ -1,9 +1,12 @@
 import { Link, useParams } from "react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Ban, FileJson } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { useJob } from "./hooks/use-job";
+import { useCancelJob } from "./hooks/use-cancel-job";
+import { downloadJobResult } from "./api/jobs.api";
 import { StatusBadge } from "./components/StatusBadge";
 
 function formatDate(iso?: string | null) {
@@ -22,19 +25,72 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+const CANCELLABLE_STATUSES = new Set(["Pending", "InProgress"]);
+
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
   const query = useJob(id);
+  const cancelMutation = useCancelJob(id);
+
+  const status = query.data?.jobStatus ? String(query.data.jobStatus) : undefined;
+  const canCancel = status !== undefined && CANCELLABLE_STATUSES.has(status);
+  const hasResult = query.data?.hasResult ?? false;
+
+  const handleCancel = () => {
+    cancelMutation.mutate(undefined, {
+      onSuccess: () => toast.success("Job cancelled"),
+      onError: (error) => toast.error("Failed to cancel job", { description: (error as Error).message }),
+    });
+  };
+
+  const handleDownload = async () => {
+    if (!id) return;
+    try {
+      const { blob, filename } = await downloadJobResult(id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error("Failed to download result", {
+        description: (error as Error).message,
+      });
+    }
+  };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2">
         <Button variant="ghost" size="sm" asChild>
           <Link to="/jobs">
             <ArrowLeft className="mr-1 size-4" />
             Back
           </Link>
         </Button>
+
+        <div className="flex gap-2">
+          {hasResult && (
+            <Button variant="outline" size="sm" onClick={handleDownload}>
+              <FileJson className="mr-1 size-4" />
+              Download result
+            </Button>
+          )}
+          {canCancel && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleCancel}
+              disabled={cancelMutation.isPending}
+            >
+              <Ban className="mr-1 size-4" />
+              {cancelMutation.isPending ? "Cancelling…" : "Cancel"}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div>

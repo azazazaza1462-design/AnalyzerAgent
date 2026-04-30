@@ -1,11 +1,15 @@
 import { Badge } from "@/components/ui/badge";
 import type { JobStatusName } from "@/lib/query-keys";
 
-const variantByStatus: Record<JobStatusName, "info" | "warning" | "success" | "destructive"> = {
+const variantByStatus: Record<
+  JobStatusName,
+  "info" | "warning" | "success" | "destructive" | "outline"
+> = {
   Pending: "info",
   InProgress: "warning",
   Completed: "success",
   Failed: "destructive",
+  Cancelled: "outline",
 };
 
 interface StatusBadgeProps {

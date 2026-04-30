@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router";
-import { Activity, ListChecks, LogOut, Moon, Sun } from "lucide-react";
+import { Activity, FolderOpen, ListChecks, LogOut, Moon, Sun } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -20,7 +20,10 @@ import { useAuthStore } from "@/stores/auth-store";
 const navGroups = [
   {
     label: "Workspace",
-    items: [{ label: "Jobs", href: "/jobs", icon: ListChecks }],
+    items: [
+      { label: "Jobs", href: "/jobs", icon: ListChecks },
+      { label: "Files", href: "/files", icon: FolderOpen },
+    ],
   },
 ];
 

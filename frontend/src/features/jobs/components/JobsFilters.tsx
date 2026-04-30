@@ -2,7 +2,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { JobStatusName, JobsListParams } from "@/lib/query-keys";
 
-const STATUS_OPTIONS: JobStatusName[] = ["Pending", "InProgress", "Completed", "Failed"];
+const STATUS_OPTIONS: JobStatusName[] = [
+  "Pending",
+  "InProgress",
+  "Completed",
+  "Failed",
+  "Cancelled",
+];
 
 interface JobsFiltersProps {
   value: JobsListParams;

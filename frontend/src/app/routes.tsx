@@ -4,6 +4,7 @@ import { ProtectedRoute } from "@/components/layout/protected-route";
 import LoginPage from "@/features/auth/LoginPage";
 import JobsPage from "@/features/jobs/JobsPage";
 import JobDetailPage from "@/features/jobs/JobDetailPage";
+import FilesPage from "@/features/files/FilesPage";
 
 function RootLayout() {
   return (
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="/jobs" replace /> },
           { path: "jobs", element: <JobsPage /> },
           { path: "jobs/:id", element: <JobDetailPage /> },
+          { path: "files", element: <FilesPage /> },
           { path: "*", element: <NotFoundPage /> },
         ],
       },
