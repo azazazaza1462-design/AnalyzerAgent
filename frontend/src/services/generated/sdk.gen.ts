@@ -16,6 +16,8 @@ import type {
   AuthMeResponse,
   UploadFileData,
   UploadFileResponse2,
+  ListFilesData,
+  ListFilesResponse,
   DownloadFileData,
   PingData,
   PingResponse2,
@@ -25,6 +27,9 @@ import type {
   CreateJobResponse2,
   GetJobData,
   GetJobResponse,
+  CancelJobData,
+  CancelJobResponse,
+  GetJobResultData,
   ClaimJobData,
   ClaimJobResponse,
   CompleteJobData,
@@ -101,6 +106,15 @@ export const uploadFile = <ThrowOnError extends boolean = false>(
   });
 };
 
+export const listFiles = <ThrowOnError extends boolean = false>(
+  options?: Options<ListFilesData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<ListFilesResponse, unknown, ThrowOnError>({
+    url: "/api/v1/files",
+    ...options,
+  });
+};
+
 export const downloadFile = <ThrowOnError extends boolean = false>(
   options: Options<DownloadFileData, ThrowOnError>,
 ) => {
@@ -146,6 +160,24 @@ export const getJob = <ThrowOnError extends boolean = false>(
 ) => {
   return (options.client ?? _heyApiClient).get<GetJobResponse, unknown, ThrowOnError>({
     url: "/api/v1/jobs/{id}",
+    ...options,
+  });
+};
+
+export const cancelJob = <ThrowOnError extends boolean = false>(
+  options: Options<CancelJobData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<CancelJobResponse, unknown, ThrowOnError>({
+    url: "/api/v1/jobs/{id}/cancel",
+    ...options,
+  });
+};
+
+export const getJobResult = <ThrowOnError extends boolean = false>(
+  options: Options<GetJobResultData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<unknown, unknown, ThrowOnError>({
+    url: "/api/v1/jobs/{id}/result",
     ...options,
   });
 };

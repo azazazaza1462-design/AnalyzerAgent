@@ -38,6 +38,14 @@ export type FailJobBody = {
   error?: string | null;
 };
 
+export type FileSummary = {
+  id?: string;
+  fileName?: string | null;
+  contentType?: string | null;
+  sizeBytes?: number;
+  createdAt?: string;
+};
+
 export type JobCompletedResponse = {
   jobId?: string;
   resultId?: string;
@@ -58,7 +66,7 @@ export type JobDetail = {
   hasResult?: boolean;
 };
 
-export type JobStatus = 0 | 1 | 2 | 3;
+export type JobStatus = 0 | 1 | 2 | 3 | 4;
 
 export type JobSummary = {
   id?: string;
@@ -77,6 +85,13 @@ export type MeResponse = {
   email?: string | null;
   fullName?: string | null;
   azureId?: string | null;
+};
+
+export type PagedFiles = {
+  items?: Array<FileSummary> | null;
+  total?: number;
+  page?: number;
+  pageSize?: number;
 };
 
 export type PagedJobs = {
@@ -183,6 +198,26 @@ export type UploadFileResponses = {
 
 export type UploadFileResponse2 = UploadFileResponses[keyof UploadFileResponses];
 
+export type ListFilesData = {
+  body?: never;
+  path?: never;
+  query?: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  };
+  url: "/api/v1/files";
+};
+
+export type ListFilesResponses = {
+  /**
+   * OK
+   */
+  200: PagedFiles;
+};
+
+export type ListFilesResponse = ListFilesResponses[keyof ListFilesResponses];
+
 export type DownloadFileData = {
   body?: never;
   path: {
@@ -284,6 +319,58 @@ export type GetJobResponses = {
 };
 
 export type GetJobResponse = GetJobResponses[keyof GetJobResponses];
+
+export type CancelJobData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/jobs/{id}/cancel";
+};
+
+export type CancelJobErrors = {
+  /**
+   * Not Found
+   */
+  404: unknown;
+  /**
+   * Conflict
+   */
+  409: unknown;
+};
+
+export type CancelJobResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type CancelJobResponse = CancelJobResponses[keyof CancelJobResponses];
+
+export type GetJobResultData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/jobs/{id}/result";
+};
+
+export type GetJobResultErrors = {
+  /**
+   * Not Found
+   */
+  404: unknown;
+};
+
+export type GetJobResultResponses = {
+  /**
+   * OK
+   */
+  200: unknown;
+};
 
 export type ClaimJobData = {
   body: ClaimJobCommand;
