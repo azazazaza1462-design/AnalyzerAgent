@@ -78,6 +78,21 @@ public sealed class JobsEndpointsTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ListJobs_FiltersByDateRange_AcceptsDateOnlyInputs()
+    {
+        await SeedJobsAsync(count: 2);
+
+        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var tomorrow = DateTime.UtcNow.AddDays(1).ToString("yyyy-MM-dd");
+
+        var response = await _client.GetAsync($"/api/v1/jobs?from={today}&to={tomorrow}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<PagedJobs>(JsonOptions);
+        body!.Total.Should().BeGreaterThanOrEqualTo(2);
+    }
+
+    [Fact]
     public async Task GetJob_Returns404_WhenNotFound()
     {
         var response = await _client.GetAsync($"/api/v1/jobs/{Guid.NewGuid()}");

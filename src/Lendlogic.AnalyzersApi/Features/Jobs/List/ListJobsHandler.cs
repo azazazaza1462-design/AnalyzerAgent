@@ -16,11 +16,20 @@ public sealed class ListJobsHandler(ApplicationDbContext db)
         if (query.Status.HasValue)
             jobs = jobs.Where(j => j.JobStatus == query.Status.Value);
 
+        // Inputs from <input type="date"> arrive as Kind=Unspecified, but
+        // CreatedAt is stored as timestamptz, so Npgsql refuses anything but
+        // UTC. Treat the incoming local-day boundaries as UTC.
         if (query.From.HasValue)
-            jobs = jobs.Where(j => j.CreatedAt >= query.From.Value);
+        {
+            var from = DateTime.SpecifyKind(query.From.Value, DateTimeKind.Utc);
+            jobs = jobs.Where(j => j.CreatedAt >= from);
+        }
 
         if (query.To.HasValue)
-            jobs = jobs.Where(j => j.CreatedAt <= query.To.Value);
+        {
+            var to = DateTime.SpecifyKind(query.To.Value, DateTimeKind.Utc);
+            jobs = jobs.Where(j => j.CreatedAt <= to);
+        }
 
         var total = await jobs.CountAsync(cancellationToken);
 
