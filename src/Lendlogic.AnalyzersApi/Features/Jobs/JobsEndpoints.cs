@@ -8,6 +8,7 @@ using Lendlogic.AnalyzersApi.Features.Jobs.Claim;
 using Lendlogic.AnalyzersApi.Features.Jobs.Complete;
 using Lendlogic.AnalyzersApi.Features.Jobs.Create;
 using Lendlogic.AnalyzersApi.Features.Jobs.Fail;
+using Lendlogic.AnalyzersApi.Features.Jobs.Download;
 using Lendlogic.AnalyzersApi.Features.Jobs.Get;
 using Lendlogic.AnalyzersApi.Features.Jobs.List;
 using Mediator;
@@ -66,17 +67,31 @@ public class JobsEndpoints : ICarterModule
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status409Conflict);
 
+        var getJobResult = group.MapGet("/{id:guid}/result", async (
+            Guid id,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await mediator.Send(new GetJobResultQuery(id), cancellationToken);
+            return result.Match(v => Results.File(v.Content, v.ContentType, v.FileName));
+        })
+        .WithName("GetJobResult")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
+
         if (env.IsDevelopment())
         {
             listJobs.AllowAnonymous();
             getJob.AllowAnonymous();
             cancelJob.AllowAnonymous();
+            getJobResult.AllowAnonymous();
         }
         else
         {
             listJobs.RequireAuthorization();
             getJob.RequireAuthorization();
             cancelJob.RequireAuthorization();
+            getJobResult.RequireAuthorization();
         }
 
         group.MapPost("/", async (

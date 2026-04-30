@@ -43,3 +43,8 @@ public sealed record PagedJobs(
     int Total,
     int Page,
     int PageSize);
+
+public sealed record JobResultDownload(
+    byte[] Content,
+    string ContentType,
+    string FileName);

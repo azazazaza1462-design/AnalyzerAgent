@@ -135,6 +135,54 @@ public sealed class JobsEndpointsTests(PostgresFixture fixture) : IAsyncLifetime
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
+    [Fact]
+    public async Task GetJobResult_Returns404_WhenJobNotFound()
+    {
+        var response = await _client.GetAsync($"/api/v1/jobs/{Guid.NewGuid()}/result");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetJobResult_Returns404_WhenJobHasNoResult()
+    {
+        var jobId = await SeedJobAsync(JobStatus.Completed);
+
+        var response = await _client.GetAsync($"/api/v1/jobs/{jobId}/result");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetJobResult_Returns200_WithJsonFile()
+    {
+        var jobId = await SeedJobAsync(JobStatus.Completed);
+        await SeedJobResultAsync(jobId, """{"approved":true,"score":0.92}""");
+
+        var response = await _client.GetAsync($"/api/v1/jobs/{jobId}/result");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+        response.Content.Headers.ContentDisposition?.FileName
+            .Should().Be($"job-{jobId}.json");
+
+        var body = await response.Content.ReadAsStringAsync();
+        body.Should().Contain("\"score\"").And.Contain("0.92");
+    }
+
+    private async Task SeedJobResultAsync(Guid jobId, string json)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.JobResults.Add(new JobResult
+        {
+            JobId = jobId,
+            ResultData = JsonDocument.Parse(json),
+            Status = ResultStatus.Success,
+        });
+        await db.SaveChangesAsync();
+    }
+
     private async Task<Guid> SeedCallerAsync()
     {
         await using var scope = _factory.Services.CreateAsyncScope();
