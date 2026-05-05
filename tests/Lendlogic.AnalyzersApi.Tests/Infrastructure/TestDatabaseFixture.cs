@@ -37,6 +37,21 @@ public sealed class TestDatabaseFixture : IAsyncLifetime
         await context.Database.EnsureCreatedAsync();
     }
 
+    public async Task ResetAsync()
+    {
+        await using var context = CreateContext();
+        var tables = context.Model.GetEntityTypes()
+            .Select(t => t.GetTableName())
+            .Where(t => t is not null)
+            .Distinct()
+            .ToList();
+
+        if (tables.Count == 0) return;
+
+        var tableList = string.Join(", ", tables.Select(t => $@"app.""{t}"""));
+        await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE " + tableList + " CASCADE;");
+    }
+
     public async Task DisposeAsync()
     {
         if (_dataSource is not null) await _dataSource.DisposeAsync();

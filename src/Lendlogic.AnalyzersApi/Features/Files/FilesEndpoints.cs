@@ -2,6 +2,7 @@ using Carter;
 using Lendlogic.AnalyzersApi.Common.Auth;
 using Lendlogic.AnalyzersApi.Common.Extensions;
 using Lendlogic.AnalyzersApi.Features.Files.Download;
+using Lendlogic.AnalyzersApi.Features.Files.List;
 using Lendlogic.AnalyzersApi.Features.Files.Upload;
 using Mediator;
 using Microsoft.AspNetCore.Http;
@@ -12,6 +13,8 @@ public class FilesEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
+        var env = app.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+
         var uploadGroup = app.MapGroup("/api/v1/file").WithTags("Files");
 
         uploadGroup.MapPost("/upload", async (
@@ -40,6 +43,20 @@ public class FilesEndpoints : ICarterModule
 
         var filesGroup = app.MapGroup("/api/v1/files").WithTags("Files");
 
+        var listFiles = filesGroup.MapGet("/", async (
+            string? search,
+            int? page,
+            int? pageSize,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var query = new ListFilesQuery(search, page ?? 1, pageSize ?? 25);
+            var result = await mediator.Send(query, cancellationToken);
+            return result.Match(Results.Ok);
+        })
+        .WithName("ListFiles")
+        .Produces<PagedFiles>(StatusCodes.Status200OK);
+
         filesGroup.MapGet("/{id:guid}", async (
             Guid id,
             IMediator mediator,
@@ -52,5 +69,10 @@ public class FilesEndpoints : ICarterModule
         .RequireAuthorization(AuthConstants.AuthorizationPolicies.Agent)
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status404NotFound);
+
+        if (env.IsDevelopment())
+            listFiles.AllowAnonymous();
+        else
+            listFiles.RequireAuthorization();
     }
 }

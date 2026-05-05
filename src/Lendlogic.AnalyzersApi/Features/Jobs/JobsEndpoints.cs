@@ -1,11 +1,16 @@
 using System.Text.Json;
 using Carter;
+using Lendlogic.Analyzers.DataAccess.Enums;
 using Lendlogic.AnalyzersApi.Common.Auth;
 using Lendlogic.AnalyzersApi.Common.Extensions;
+using Lendlogic.AnalyzersApi.Features.Jobs.Cancel;
 using Lendlogic.AnalyzersApi.Features.Jobs.Claim;
 using Lendlogic.AnalyzersApi.Features.Jobs.Complete;
 using Lendlogic.AnalyzersApi.Features.Jobs.Create;
 using Lendlogic.AnalyzersApi.Features.Jobs.Fail;
+using Lendlogic.AnalyzersApi.Features.Jobs.Download;
+using Lendlogic.AnalyzersApi.Features.Jobs.Get;
+using Lendlogic.AnalyzersApi.Features.Jobs.List;
 using Mediator;
 
 namespace Lendlogic.AnalyzersApi.Features.Jobs;
@@ -14,7 +19,80 @@ public class JobsEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
+        var env = app.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
         var group = app.MapGroup("/api/v1/jobs").WithTags("Jobs");
+
+        // Until MSAL Entra ID is wired into the frontend, the read endpoints
+        // are gated by environment so the team can demo the UI locally
+        // without an app registration. Staging and production keep the auth
+        // requirement intact.
+        var listJobs = group.MapGet("/", async (
+            JobStatus? status,
+            DateTime? from,
+            DateTime? to,
+            int? page,
+            int? pageSize,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var query = new ListJobsQuery(status, from, to, page ?? 1, pageSize ?? 25);
+            var result = await mediator.Send(query, cancellationToken);
+            return result.Match(Results.Ok);
+        })
+        .WithName("ListJobs")
+        .Produces<PagedJobs>(StatusCodes.Status200OK);
+
+        var getJob = group.MapGet("/{id:guid}", async (
+            Guid id,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await mediator.Send(new GetJobQuery(id), cancellationToken);
+            return result.Match(Results.Ok);
+        })
+        .WithName("GetJob")
+        .Produces<JobDetail>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
+
+        var cancelJob = group.MapPost("/{id:guid}/cancel", async (
+            Guid id,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await mediator.Send(new CancelJobCommand(id), cancellationToken);
+            return result.Match(_ => Results.NoContent());
+        })
+        .WithName("CancelJob")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status409Conflict);
+
+        var getJobResult = group.MapGet("/{id:guid}/result", async (
+            Guid id,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await mediator.Send(new GetJobResultQuery(id), cancellationToken);
+            return result.Match(v => Results.File(v.Content, v.ContentType, v.FileName));
+        })
+        .WithName("GetJobResult")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status404NotFound);
+
+        if (env.IsDevelopment())
+        {
+            listJobs.AllowAnonymous();
+            getJob.AllowAnonymous();
+            cancelJob.AllowAnonymous();
+            getJobResult.AllowAnonymous();
+        }
+        else
+        {
+            listJobs.RequireAuthorization();
+            getJob.RequireAuthorization();
+            cancelJob.RequireAuthorization();
+            getJobResult.RequireAuthorization();
+        }
 
         group.MapPost("/", async (
             CreateJobCommand command,
