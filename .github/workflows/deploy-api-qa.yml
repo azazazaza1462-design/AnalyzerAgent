@@ -2,7 +2,7 @@ name: Deploy API to QA
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/ci-deploy-api-qa]
     paths:
       - 'src/**'
       - 'tests/**'
