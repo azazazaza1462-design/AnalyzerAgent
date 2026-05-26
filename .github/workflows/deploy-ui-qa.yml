@@ -1,0 +1,53 @@
+name: Deploy UI to QA
+
+on:
+  push:
+    branches: [main, feature/ci-deploy-ui-qa]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-ui-qa.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ui-qa
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '24.11.1'
+  WORKING_DIR: frontend
+  AZURE_WEBAPP_NAME: 'lendlogic-analyzer-ui-qa-cus'
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    environment: qa
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm ci
+
+      - name: Build
+        working-directory: ${{ env.WORKING_DIR }}
+        run: npm run build
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_UI_QA }}
+          package: ${{ env.WORKING_DIR }}/dist
