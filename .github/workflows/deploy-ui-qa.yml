@@ -24,7 +24,6 @@ jobs:
   build-and-deploy:
     name: Build & Deploy
     runs-on: ubuntu-latest
-    environment: qa
 
     steps:
       - name: Checkout
