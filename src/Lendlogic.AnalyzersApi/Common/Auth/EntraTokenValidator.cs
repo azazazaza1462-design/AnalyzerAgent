@@ -9,37 +9,31 @@ namespace Lendlogic.AnalyzersApi.Common.Auth;
 
 public sealed class EntraTokenValidator : IEntraTokenValidator
 {
-    private readonly IConfigurationManager<OpenIdConnectConfiguration> _configManager;
-    private readonly string _tenantId;
-    private readonly string _audience;
+    private readonly IConfiguration _configuration;
     private readonly JwtOptions _jwtOptions;
     private readonly ILogger<EntraTokenValidator> _logger;
+    private IConfigurationManager<OpenIdConnectConfiguration>? _configManager;
+    private string? _tenantId;
+    private string? _audience;
 
     public EntraTokenValidator(
         IConfiguration configuration,
         IOptions<JwtOptions> jwtOptions,
         ILogger<EntraTokenValidator> logger)
     {
-        _tenantId = configuration["AzureAd:TenantId"]
-            ?? throw new InvalidOperationException("AzureAd:TenantId is not configured.");
-        _audience = configuration["AzureAd:Audience"]
-            ?? throw new InvalidOperationException("AzureAd:Audience is not configured.");
+        _configuration = configuration;
         _jwtOptions = jwtOptions.Value;
         _logger = logger;
-
-        var discoveryEndpoint =
-            $"https://login.microsoftonline.com/{_tenantId}/v2.0/.well-known/openid-configuration";
-
-        _configManager = new ConfigurationManager<OpenIdConnectConfiguration>(
-            discoveryEndpoint,
-            new OpenIdConnectConfigurationRetriever());
     }
 
     public async Task<ClaimsPrincipal?> ValidateAsync(string token, CancellationToken cancellationToken = default)
     {
         try
         {
-            var config = await _configManager.GetConfigurationAsync(cancellationToken);
+            if (!TryEnsureInitialized())
+                return null;
+
+            var config = await _configManager!.GetConfigurationAsync(cancellationToken);
 
             var validationParameters = new TokenValidationParameters
             {
@@ -66,5 +60,40 @@ public sealed class EntraTokenValidator : IEntraTokenValidator
             _logger.LogWarning(ex, "Entra ID token validation failed");
             return null;
         }
+        catch (Exception ex)
+        {
+            // Discovery fetch errors, transient I/O, etc. Return null so the caller
+            // sees a clean 401 instead of a 500 — the cause is in the logs.
+            _logger.LogError(ex, "Entra ID token validation threw an unexpected exception");
+            return null;
+        }
+    }
+
+    // Lazily read config so a missing AzureAd:* setting produces a clean 401 with
+    // a logged hint at request time, instead of a 500 at first DI resolution.
+    private bool TryEnsureInitialized()
+    {
+        if (_configManager is not null) return true;
+
+        var tenantId = _configuration["AzureAd:TenantId"];
+        var audience = _configuration["AzureAd:Audience"];
+
+        if (string.IsNullOrWhiteSpace(tenantId) || string.IsNullOrWhiteSpace(audience))
+        {
+            _logger.LogError(
+                "Entra token validation skipped: AzureAd config is missing. " +
+                "TenantId set: {TenantIdSet}, Audience set: {AudienceSet}",
+                !string.IsNullOrWhiteSpace(tenantId),
+                !string.IsNullOrWhiteSpace(audience));
+            return false;
+        }
+
+        _tenantId = tenantId;
+        _audience = audience;
+        _configManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+            $"https://login.microsoftonline.com/{tenantId}/v2.0/.well-known/openid-configuration",
+            new OpenIdConnectConfigurationRetriever());
+
+        return true;
     }
 }

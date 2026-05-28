@@ -82,6 +82,6 @@ Open <http://localhost:5173>, sign in with any email (stub auth), and you should
 ## Environment variables
 
 Copy `.env.example` → `.env` and fill in:
-- `VITE_API_BASE_URL` — defaults to `/api/v1` (uses the dev proxy).
-- `VITE_ENTRA_*` — placeholders, fill in when MSAL is re-enabled.
+- `VITE_API_BASE_URL` — API origin. Leave empty in dev (the Vite proxy forwards `/api/*`); set to the API App Service origin in QA/prod.
+- `VITE_ENTRA_CLIENT_ID` — required for sign-in (App Registration client ID). `VITE_ENTRA_TENANT_ID` / `VITE_ENTRA_REDIRECT_URI` are optional (default to the Viewnear tenant and the page origin).
 - `VITE_DISABLE_MSW` — reserved for future MSW use, not active today.

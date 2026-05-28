@@ -43,6 +43,15 @@ jobs:
       - name: Build
         working-directory: ${{ env.WORKING_DIR }}
         run: npm run build
+        env:
+          # Vite inlines VITE_* at build time. Sourced from repo-level GitHub
+          # Variables (non-sensitive). VITE_ENTRA_TENANT_ID/REDIRECT_URI are
+          # optional — the app falls back to the Viewnear tenant and the page
+          # origin respectively when unset.
+          VITE_ENTRA_CLIENT_ID: ${{ vars.VITE_ENTRA_CLIENT_ID }}
+          VITE_ENTRA_TENANT_ID: ${{ vars.VITE_ENTRA_TENANT_ID }}
+          VITE_ENTRA_REDIRECT_URI: ${{ vars.VITE_ENTRA_REDIRECT_URI }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
