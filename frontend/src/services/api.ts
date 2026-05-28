@@ -2,10 +2,16 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import type { CreateClientConfig } from "./generated/client.gen";
 import { withTokenRefresh } from "./tokenRefresh";
 
+// API origin. Empty in dev — the Vite proxy forwards /api/* to the backend.
+// In deployed envs (QA/prod) the UI and API are different hosts, so this is set
+// to the API's absolute origin (no path; SDK paths already include /api/v1).
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? "";
+
 // Shared axios instance for ad-hoc calls. The generated SDK uses its own
 // instance configured by createClientConfig below, but follows the same
 // baseURL/credentials/interceptor conventions.
 const api = axios.create({
+  baseURL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -37,11 +43,11 @@ api.interceptors.response.use(
 );
 
 // Used by services/generated/client.gen.ts to configure the OpenAPI client.
-// Paths in the generated SDK are absolute (e.g. "/api/v1/jobs"), so baseURL
-// stays empty — the Vite dev server proxies /api/* to the backend.
+// Paths in the generated SDK are absolute (e.g. "/api/v1/jobs"), so baseURL is
+// the API origin only (empty in dev, where the Vite proxy handles /api/*).
 export const createClientConfig: CreateClientConfig = (override) => ({
   ...override,
-  baseURL: "",
+  baseURL,
   withCredentials: true,
 });
 

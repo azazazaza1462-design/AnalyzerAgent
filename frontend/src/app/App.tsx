@@ -18,7 +18,18 @@ const queryClient = new QueryClient({
 
 export function App() {
   useEffect(() => {
-    useAuthStore.getState().hydrate();
+    let cancelled = false;
+    const init = async () => {
+      // Consume a Microsoft redirect (exchange idToken for a session cookie)
+      // before checking the existing session, so a fresh sign-in hydrates too.
+      await useAuthStore.getState().handleRedirectResult();
+      if (cancelled) return;
+      await useAuthStore.getState().hydrate();
+    };
+    void init();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
