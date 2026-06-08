@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router";
-import { Activity, FolderOpen, ListChecks, LogOut, Moon, Sun } from "lucide-react";
+import { Activity, Folder, LayoutDashboard, ListChecks, Lock, LogOut, Moon, Scale, Sun } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,8 +21,16 @@ const navGroups = [
   {
     label: "Workspace",
     items: [
-      { label: "Jobs", href: "/jobs", icon: ListChecks },
-      { label: "Files", href: "/files", icon: FolderOpen },
+      { label: "Dashboard", href: "/", icon: LayoutDashboard },
+      { label: "Reports", href: "/reports", icon: ListChecks },
+      { label: "Files", href: "/files", icon: Folder },
+    ],
+  },
+  {
+    label: "Underwriting",
+    items: [
+      { label: "Eligibility queue", href: "/underwriting/queue", icon: Scale },
+      { label: "Model governance", href: "/underwriting/model/eligibility", icon: Lock },
     ],
   },
 ];
@@ -43,9 +51,9 @@ export function AppSidebar() {
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Activity className="size-5" />
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Analyzers</span>
-                  <span className="truncate text-xs text-muted-foreground">LendLogic</span>
+                <div className="grid flex-1 text-left leading-tight">
+                  <span className="truncate text-[14px] font-medium">Analyzers</span>
+                  <span className="truncate text-[12px] text-muted-foreground">LendLogic</span>
                 </div>
               </Link>
             </SidebarMenuButton>
