@@ -9,6 +9,7 @@ import { Skeleton } from "./components/Skeleton";
 import { StatusDot } from "./components/StatusDot";
 import { Sparkline } from "./components/Sparkline";
 import { StackedBar } from "./components/StackedBar";
+import { QuickUploadCard } from "./components/QuickUploadCard";
 import { useJobQueueSummary } from "./hooks/useJobs";
 import { analyzerLabel, dateBucket, relativeTime, statusLabel } from "./labels";
 import type { AnalyzerType, JobStatus } from "./types";
@@ -82,7 +83,10 @@ export default function DashboardPage() {
           <AnalyzerBreakdownCard data={data} loading={query.isLoading} />
         </div>
 
-        <RecentColumn data={data} loading={query.isLoading} />
+        <div className="space-y-10">
+          <QuickUploadCard />
+          <RecentColumn data={data} loading={query.isLoading} />
+        </div>
       </div>
     </WorkspaceShell>
   );
