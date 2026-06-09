@@ -42,6 +42,30 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* === Eligibility workbench (U-02-08) — namespaced tokens === */
+  /* Surfaces */
+  --ew-bg-primary: #ffffff;
+  --ew-bg-secondary: #f1efe8;
+  --ew-bg-tertiary: #faf9f5;
+  /* Text */
+  --ew-text-primary: #1a1a18;
+  --ew-text-secondary: #5c5c58;
+  --ew-text-tertiary: #8e8e88;
+  /* Borders (0.5px hairline) */
+  --ew-border: rgba(0, 0, 0, 0.12);
+  --ew-border-strong: rgba(0, 0, 0, 0.22);
+  /* Semantic — bg/text pairs */
+  --ew-success-bg: #e6f2ea;
+  --ew-success-text: #1f6b3f;
+  --ew-warning-bg: #fbf1de;
+  --ew-warning-text: #8a5c00;
+  --ew-danger-bg: #fbe9e7;
+  --ew-danger-text: #b3261e;
+  --ew-info-bg: #e6eefb;
+  --ew-info-text: #1a5bc9;
+  --ew-neutral-bg: #ecebe6;
+  --ew-neutral-text: #5c5c58;
 }
 
 .dark {
@@ -81,6 +105,28 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* Eligibility workbench dark mode */
+  --ew-bg-primary: #1a1a18;
+  --ew-bg-secondary: #2c2c2a;
+  --ew-bg-tertiary: #121211;
+  --ew-text-primary: #f1efe8;
+  --ew-text-secondary: #a8a8a2;
+  --ew-text-tertiary: #6e6e68;
+  /* In dark mode a 12% white border on a near-black surface is too faint to
+     read as a hairline. Bump alphas so 0.5px stays a real edge. */
+  --ew-border: rgba(255, 255, 255, 0.2);
+  --ew-border-strong: rgba(255, 255, 255, 0.32);
+  --ew-success-bg: #1c3a28;
+  --ew-success-text: #7bd9a3;
+  --ew-warning-bg: #3d2e10;
+  --ew-warning-text: #f0c569;
+  --ew-danger-bg: #3d1f1d;
+  --ew-danger-text: #f08a82;
+  --ew-info-bg: #1c2c4a;
+  --ew-info-text: #8eb5f5;
+  --ew-neutral-bg: #2c2c2a;
+  --ew-neutral-text: #a8a8a2;
 }
 
 @theme inline {
@@ -125,6 +171,26 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Eligibility workbench color utilities (bg-ew-*, text-ew-*, border-ew-*) */
+  --color-ew-bg-primary: var(--ew-bg-primary);
+  --color-ew-bg-secondary: var(--ew-bg-secondary);
+  --color-ew-bg-tertiary: var(--ew-bg-tertiary);
+  --color-ew-text-primary: var(--ew-text-primary);
+  --color-ew-text-secondary: var(--ew-text-secondary);
+  --color-ew-text-tertiary: var(--ew-text-tertiary);
+  --color-ew-border: var(--ew-border);
+  --color-ew-border-strong: var(--ew-border-strong);
+  --color-ew-success-bg: var(--ew-success-bg);
+  --color-ew-success-text: var(--ew-success-text);
+  --color-ew-warning-bg: var(--ew-warning-bg);
+  --color-ew-warning-text: var(--ew-warning-text);
+  --color-ew-danger-bg: var(--ew-danger-bg);
+  --color-ew-danger-text: var(--ew-danger-text);
+  --color-ew-info-bg: var(--ew-info-bg);
+  --color-ew-info-text: var(--ew-info-text);
+  --color-ew-neutral-bg: var(--ew-neutral-bg);
+  --color-ew-neutral-text: var(--ew-neutral-text);
 }
 
 @layer base {
