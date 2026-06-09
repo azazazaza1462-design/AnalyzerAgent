@@ -5,6 +5,7 @@ import LoginPage from "@/features/auth/LoginPage";
 import DashboardPage from "@/features/workspace/DashboardPage";
 import ReportsPage from "@/features/workspace/ReportsPage";
 import FilesPage from "@/features/workspace/FilesPage";
+import UploadPage from "@/features/workspace/UploadPage";
 import QueuePage from "@/features/eligibility/QueuePage";
 import AssessmentDetailPage from "@/features/eligibility/AssessmentDetailPage";
 import ProvenancePage from "@/features/eligibility/ProvenancePage";
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
           { index: true, element: <DashboardPage /> },
           { path: "reports", element: <ReportsPage /> },
           { path: "files", element: <FilesPage /> },
+          { path: "upload", element: <UploadPage /> },
           {
             path: "underwriting",
             children: [
