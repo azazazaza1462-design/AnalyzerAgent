@@ -24,6 +24,8 @@ public sealed class AnalyzersApiFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("Jwt__Key", "TestOnlySigningKey-Must-Be-At-Least-32-Characters-Long!");
         Environment.SetEnvironmentVariable("AzureAd__TenantId", "00000000-0000-0000-0000-000000000000");
         Environment.SetEnvironmentVariable("AzureAd__Audience", "00000000-0000-0000-0000-000000000000");
+        // Agent API key so the worker (Agent-policy) endpoints can be exercised.
+        Environment.SetEnvironmentVariable("AgentApiKeys__Keys__test-agent", "test-agent-key");
         try
         {
             return base.CreateHost(builder);
@@ -35,6 +37,7 @@ public sealed class AnalyzersApiFactory : WebApplicationFactory<Program>
             Environment.SetEnvironmentVariable("Jwt__Key", null);
             Environment.SetEnvironmentVariable("AzureAd__TenantId", null);
             Environment.SetEnvironmentVariable("AzureAd__Audience", null);
+            Environment.SetEnvironmentVariable("AgentApiKeys__Keys__test-agent", null);
         }
     }
 

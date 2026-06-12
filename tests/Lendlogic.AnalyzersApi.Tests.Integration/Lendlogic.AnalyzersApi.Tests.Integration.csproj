@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Lendlogic.AnalyzersApi\Lendlogic.AnalyzersApi.csproj" />
+    <ProjectReference Include="..\..\src\Lendlogic.Agent\Lendlogic.Agent.csproj" />
   </ItemGroup>
 
 </Project>
