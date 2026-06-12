@@ -1,20 +1,23 @@
 ﻿using Lendlogic.Agent;
 using Lendlogic.Agent.Api;
 using Lendlogic.Agent.Core.Analysis;
+using Lendlogic.Agent.Core.Claude;
+using Lendlogic.Agent.Core.Imaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-var builder = Host.CreateApplicationBuilder(args);
-
-builder.Configuration
-    // Base path = output directory (where appsettings.json is copied), so the
-    // worker loads its config regardless of the current working directory
-    // (e.g. `dotnet run --project ...` from the repo root).
-    .SetBasePath(AppContext.BaseDirectory)
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables();
+// ContentRootPath = output directory (where appsettings.json is copied) so the
+// host's default config sources load regardless of the working directory
+// (e.g. `dotnet run --project ...` from the repo root). Relying on the default
+// sources keeps the correct precedence: appsettings -> user-secrets (Dev) ->
+// environment variables, so the user-secret Claude:ApiKey wins over the empty
+// placeholder in appsettings.json.
+var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory,
+});
 
 // Typed API client — base URL + agent API key (X-Api-Key) from config.
 builder.Services.AddHttpClient<IAnalyzerApiClient, AnalyzerApiClient>((sp, http) =>
@@ -28,6 +31,15 @@ builder.Services.AddHttpClient<IAnalyzerApiClient, AnalyzerApiClient>((sp, http)
     if (!string.IsNullOrWhiteSpace(apiKey))
         http.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
 });
+
+// Claude vision (Sonnet 4.6) — key from config or the ANTHROPIC_API_KEY env var.
+var claudeOptions = new ClaudeOptions();
+builder.Configuration.GetSection(ClaudeOptions.SectionName).Bind(claudeOptions);
+if (string.IsNullOrWhiteSpace(claudeOptions.ApiKey))
+    claudeOptions.ApiKey = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY") ?? "";
+builder.Services.AddSingleton(claudeOptions);
+builder.Services.AddSingleton<IClaudeVisionClient, ClaudeVisionClient>();
+builder.Services.AddSingleton<IImageRasterizer, PdfImageRasterizer>();
 
 // Analyzers (one per JobType) + the per-message orchestrator.
 builder.Services.AddSingleton<IDocumentAnalyzer, IdValidationAnalyzer>();

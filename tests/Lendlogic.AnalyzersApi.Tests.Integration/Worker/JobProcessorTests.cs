@@ -2,6 +2,7 @@ using FluentAssertions;
 using Lendlogic.Agent;
 using Lendlogic.Agent.Api;
 using Lendlogic.Agent.Core.Analysis;
+using Lendlogic.Agent.Core.Contracts;
 using Lendlogic.Analyzers.DataAccess;
 using Lendlogic.Analyzers.DataAccess.Entities;
 using Lendlogic.Analyzers.DataAccess.Enums;
@@ -31,7 +32,10 @@ public sealed class JobProcessorTests(PostgresFixture fixture) : IAsyncLifetime
         var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-Api-Key", "test-agent-key");
         var api = new AnalyzerApiClient(client);
-        return new JobProcessor(api, [new IdValidationAnalyzer()], NullLogger<JobProcessor>.Instance);
+        // Stub analyzer — this suite exercises JobProcessor orchestration
+        // (claim → complete/fail), not the analyzer internals (those are tested
+        // separately with a fake IClaudeVisionClient).
+        return new JobProcessor(api, [new StubIdAnalyzer()], NullLogger<JobProcessor>.Instance);
     }
 
     [Fact]
@@ -45,7 +49,7 @@ public sealed class JobProcessorTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ProcessNext_CompletesIdValidationJob_WithCannedResult()
+    public async Task ProcessNext_CompletesIdValidationJob_AndPersistsResult()
     {
         var jobId = await SeedPendingJobAsync(JobType.IdValidation);
 
@@ -63,11 +67,9 @@ public sealed class JobProcessorTests(PostgresFixture fixture) : IAsyncLifetime
         var result = await db.JobResults.AsNoTracking().FirstAsync(r => r.JobId == jobId);
         result.Status.Should().Be(ResultStatus.Success);
 
-        // Stored JSON must match the frontend unions: camelCase props, snake_case enums.
+        // The analyzer's result is persisted verbatim as result_data (camelCase props).
         var root = result.ResultData!.RootElement;
-        root.GetProperty("verdict").GetString().Should().Be("needs_review");
-        root.GetProperty("checks")[0].GetProperty("status").GetString().Should().Be("not_applicable");
-        root.GetProperty("calls")[0].GetProperty("step").GetString().Should().Be("ingest");
+        root.GetProperty("verdict").GetString().Should().Be("verified");
     }
 
     [Fact]
@@ -105,5 +107,16 @@ public sealed class JobProcessorTests(PostgresFixture fixture) : IAsyncLifetime
         db.Jobs.Add(job);
         await db.SaveChangesAsync();
         return job.Id;
+    }
+
+    private sealed class StubIdAnalyzer : IDocumentAnalyzer
+    {
+        public JobType JobType => JobType.IdValidation;
+
+        public Task<object> AnalyzeAsync(
+            AnalyzerMessagePayload payload,
+            IReadOnlyList<AnalyzerFile> files,
+            CancellationToken cancellationToken)
+            => Task.FromResult<object>(new { verdict = "verified" });
     }
 }
