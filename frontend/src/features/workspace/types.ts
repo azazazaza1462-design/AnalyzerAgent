@@ -105,11 +105,27 @@ export interface IdCheck {
   detail?: string;
 }
 
+export type EligibilityVerdict = "eligible" | "conditional" | "ineligible";
+
+export interface FeatureContribution {
+  feature: string;
+  contribution: number;
+}
+
+// Output of the external eligibility model (stubbed) for the emitted features.
+export interface EligibilityAssessment {
+  score: number; // 0..1
+  verdict: EligibilityVerdict;
+  modelVersion: string;
+  contributions: FeatureContribution[];
+}
+
 export interface IdValidationResult {
   fields: IdFields;
   checks: IdCheck[];
   verdict: IdVerdict;
   confidence: number; // 0..1
+  eligibility?: EligibilityAssessment;
   calls: AnalyzerCall[];
 }
 

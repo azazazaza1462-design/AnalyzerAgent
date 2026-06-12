@@ -1,6 +1,13 @@
 import { AlertCircle, CheckCircle2, MinusCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { CheckStatus, IdCheck, IdValidationResult, IdVerdict } from "../types";
+import type {
+  CheckStatus,
+  EligibilityAssessment,
+  EligibilityVerdict,
+  IdCheck,
+  IdValidationResult,
+  IdVerdict,
+} from "../types";
 
 const VERDICT: Record<IdVerdict, { label: string; fill: string; text: string }> = {
   verified: { label: "Verified", fill: "bg-ew-success-text", text: "text-ew-success-text" },
@@ -77,6 +84,52 @@ export function IdValidationResultView({ result }: { result: IdValidationResult 
           {result.checks.length === 0 && (
             <li className="px-4 py-3 text-[13px] text-ew-text-tertiary">No checks recorded.</li>
           )}
+        </ul>
+      </div>
+
+      {/* Eligibility (external model — stub) */}
+      {result.eligibility && <EligibilitySection e={result.eligibility} />}
+    </div>
+  );
+}
+
+const ELIG_VERDICT: Record<EligibilityVerdict, { label: string; fill: string; text: string }> = {
+  eligible: { label: "Eligible", fill: "bg-ew-success-text", text: "text-ew-success-text" },
+  conditional: { label: "Conditional", fill: "bg-ew-warning-text", text: "text-ew-warning-text" },
+  ineligible: { label: "Ineligible", fill: "bg-ew-danger-text", text: "text-ew-danger-text" },
+};
+
+function EligibilitySection({ e }: { e: EligibilityAssessment }) {
+  const v = ELIG_VERDICT[e.verdict];
+  const pct = Math.round(Math.max(0, Math.min(1, e.score)) * 100);
+  return (
+    <div className="space-y-3">
+      <h3 className="text-[11px] font-medium uppercase tracking-wider text-ew-text-tertiary">
+        Eligibility <span className="lowercase text-ew-text-tertiary">· {e.modelVersion} (preview)</span>
+      </h3>
+      <div className="space-y-2.5 rounded-xl border-[0.5px] border-ew-border bg-ew-bg-primary p-4">
+        <div className="flex items-baseline justify-between">
+          <span className={cn("text-[16px] font-medium", v.text)}>{v.label}</span>
+          <span className="text-[13px] tabular-nums text-ew-text-tertiary">{pct}% score</span>
+        </div>
+        <div className="h-1.5 w-full rounded-full bg-ew-bg-secondary">
+          <div className={cn("h-full rounded-full transition-[width]", v.fill)} style={{ width: `${pct}%` }} />
+        </div>
+        <ul className="space-y-1 pt-1">
+          {e.contributions.map((c) => (
+            <li key={c.feature} className="flex items-center justify-between text-[12px]">
+              <span className="text-ew-text-secondary">{c.feature.replace(/_/g, " ")}</span>
+              <span
+                className={cn(
+                  "font-medium tabular-nums",
+                  c.contribution < 0 ? "text-ew-danger-text" : "text-ew-text-primary",
+                )}
+              >
+                {c.contribution >= 0 ? "+" : ""}
+                {c.contribution.toFixed(2)}
+              </span>
+            </li>
+          ))}
         </ul>
       </div>
     </div>

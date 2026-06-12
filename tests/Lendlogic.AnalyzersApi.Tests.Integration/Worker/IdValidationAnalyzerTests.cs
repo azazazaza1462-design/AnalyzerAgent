@@ -3,6 +3,7 @@ using FluentAssertions;
 using Lendlogic.Agent.Core.Analysis;
 using Lendlogic.Agent.Core.Claude;
 using Lendlogic.Agent.Core.Contracts;
+using Lendlogic.Agent.Core.Eligibility;
 using Lendlogic.Agent.Core.Imaging;
 using Xunit;
 
@@ -25,7 +26,7 @@ public sealed class IdValidationAnalyzerTests
     {
         var vision = new FakeVision(Classify, Extract, authenticityJson);
         var options = new ClaudeOptions { ApiKey = "test", Model = "claude-sonnet-4-6" };
-        return new IdValidationAnalyzer(vision, new FakeRasterizer(), options);
+        return new IdValidationAnalyzer(vision, new FakeRasterizer(), new StubEligibilityModelClient(), options);
     }
 
     private static AnalyzerMessagePayload Payload(string? name, string? dob) => new()
@@ -48,6 +49,9 @@ public sealed class IdValidationAnalyzerTests
         result.Fields.FullName.Should().Be("Jane Doe");
         result.Fields.DocumentKind.Should().Be("drivers_license");
         result.Verdict.Should().Be(IdVerdict.Verified);
+        result.Eligibility.Should().NotBeNull();
+        result.Eligibility!.Verdict.Should().Be(EligibilityVerdict.Eligible);
+        result.Eligibility.Contributions.Should().NotBeEmpty();
         result.Calls.Should().HaveCount(6);
         result.Checks.Should().Contain(c => c.Name == "name_match" && c.Status == CheckStatus.Pass);
         result.Checks.Should().Contain(c => c.Name == "dob_match" && c.Status == CheckStatus.Pass);

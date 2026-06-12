@@ -2,6 +2,7 @@
 using Lendlogic.Agent.Api;
 using Lendlogic.Agent.Core.Analysis;
 using Lendlogic.Agent.Core.Claude;
+using Lendlogic.Agent.Core.Eligibility;
 using Lendlogic.Agent.Core.Imaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,6 +41,9 @@ if (string.IsNullOrWhiteSpace(claudeOptions.ApiKey))
 builder.Services.AddSingleton(claudeOptions);
 builder.Services.AddSingleton<IClaudeVisionClient, ClaudeVisionClient>();
 builder.Services.AddSingleton<IImageRasterizer, PdfImageRasterizer>();
+
+// External eligibility model (stub until the trained endpoint exists).
+builder.Services.AddSingleton<IEligibilityModelClient, StubEligibilityModelClient>();
 
 // Analyzers (one per JobType) + the per-message orchestrator.
 builder.Services.AddSingleton<IDocumentAnalyzer, IdValidationAnalyzer>();

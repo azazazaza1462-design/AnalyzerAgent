@@ -25,6 +25,9 @@ public sealed record IdValidationResult
     /// <summary>Overall confidence in the verdict, 0..1.</summary>
     public double Confidence { get; init; }
 
+    /// <summary>Eligibility model output for the emitted features (stub for now).</summary>
+    public EligibilityAssessment? Eligibility { get; init; }
+
     /// <summary>The six pipeline steps the agent executed, in order.</summary>
     public IReadOnlyList<AnalyzerCall> Calls { get; init; } = [];
 }

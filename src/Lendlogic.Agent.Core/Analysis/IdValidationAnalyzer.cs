@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using Lendlogic.Agent.Core.Claude;
 using Lendlogic.Agent.Core.Contracts;
+using Lendlogic.Agent.Core.Eligibility;
 using Lendlogic.Agent.Core.Imaging;
 using Lendlogic.Analyzers.DataAccess.Enums;
 
@@ -20,6 +21,7 @@ namespace Lendlogic.Agent.Core.Analysis;
 public sealed class IdValidationAnalyzer(
     IClaudeVisionClient vision,
     IImageRasterizer rasterizer,
+    IEligibilityModelClient eligibilityModel,
     ClaudeOptions options) : IDocumentAnalyzer
 {
     public JobType JobType => JobType.IdValidation;
@@ -128,7 +130,7 @@ public sealed class IdValidationAnalyzer(
         sw = Stopwatch.StartNew();
         var verdict = ComputeVerdict(checks);
         var confidence = ComputeConfidence(authenticityScore, nameScore, dobScore, checks);
-        _ = new EligibilityFeatures
+        var features = new EligibilityFeatures
         {
             IdentityVerified = verdict == IdVerdict.Verified,
             DocumentExpired = documentExpired,
@@ -137,8 +139,9 @@ public sealed class IdValidationAnalyzer(
             FaceMatchScore = null,
             AuthenticityScore = authenticityScore,
         };
+        var eligibility = await eligibilityModel.ScoreAsync(features, cancellationToken);
         sw.Stop();
-        calls.Add(Call("eligibility_features", "Emit eligibility features", sw, model: null));
+        calls.Add(Call("eligibility_features", "Emit eligibility features + score", sw, model: null));
 
         return new IdValidationResult
         {
@@ -146,6 +149,7 @@ public sealed class IdValidationAnalyzer(
             Checks = checks,
             Verdict = verdict,
             Confidence = confidence,
+            Eligibility = eligibility,
             Calls = calls,
         };
     }
