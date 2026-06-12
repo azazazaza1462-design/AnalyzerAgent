@@ -1,5 +1,6 @@
 // Real API layer over the generated OpenAPI SDK. Consumers (hooks) keep the
 // same function shapes; the mapping backend<->frontend lives in ./mappers.
+import api from "@/services/api";
 import { getJob, getJobResult, listFiles, listJobs } from "@/services/generated/sdk.gen";
 import type { JobDetail, PagedFiles, PagedJobs } from "@/services/generated/types.gen";
 import { summarize } from "./data/mock";
@@ -67,6 +68,31 @@ export async function fetchJobRun(id: string): Promise<JobRun> {
   }
 
   return detailToRun(detail, result, failure);
+}
+
+// --- Reviewer decisions (training labels) ---------------------------------
+
+export type DecisionOutcome = "approved" | "rejected";
+
+export interface JobDecision {
+  jobId: string;
+  outcome: string; // "Approved" | "Rejected"
+  reviewedBy?: string | null;
+  note?: string | null;
+}
+
+export async function fetchDecision(jobId: string): Promise<JobDecision | null> {
+  const res = await api.get<JobDecision>(`/api/v1/jobs/${jobId}/decision`);
+  return res.status === 204 ? null : res.data;
+}
+
+export async function recordDecision(
+  jobId: string,
+  outcome: DecisionOutcome,
+  note?: string,
+): Promise<JobDecision> {
+  const res = await api.post<JobDecision>(`/api/v1/jobs/${jobId}/decision`, { outcome, note });
+  return res.data;
 }
 
 export interface DocumentsListParams {

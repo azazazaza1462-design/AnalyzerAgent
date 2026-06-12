@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  fetchDecision,
   fetchDocuments,
   fetchJobQueueSummary,
   fetchJobRun,
@@ -7,6 +8,14 @@ import {
   type DocumentsListParams,
   type JobsListParams,
 } from "../api";
+
+export function useJobDecision(id: string | undefined) {
+  return useQuery({
+    queryKey: ["workspace", "decision", id],
+    queryFn: () => fetchDecision(id!),
+    enabled: !!id,
+  });
+}
 
 export function useJobRun(id: string | undefined) {
   return useQuery({

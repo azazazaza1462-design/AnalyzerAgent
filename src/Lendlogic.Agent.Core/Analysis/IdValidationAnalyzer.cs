@@ -149,6 +149,7 @@ public sealed class IdValidationAnalyzer(
             Checks = checks,
             Verdict = verdict,
             Confidence = confidence,
+            Features = features,
             Eligibility = eligibility,
             Calls = calls,
         };

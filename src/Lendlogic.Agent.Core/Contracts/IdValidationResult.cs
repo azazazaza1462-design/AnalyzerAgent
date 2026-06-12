@@ -25,6 +25,10 @@ public sealed record IdValidationResult
     /// <summary>Overall confidence in the verdict, 0..1.</summary>
     public double Confidence { get; init; }
 
+    /// <summary>Raw features emitted to the eligibility model (persisted so they
+    /// can be exported as labeled training data).</summary>
+    public EligibilityFeatures? Features { get; init; }
+
     /// <summary>Eligibility model output for the emitted features (stub for now).</summary>
     public EligibilityAssessment? Eligibility { get; init; }
 

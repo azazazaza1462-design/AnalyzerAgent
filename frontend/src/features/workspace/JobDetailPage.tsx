@@ -1,11 +1,14 @@
 import { Link, useParams } from "react-router";
-import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { AppHeader } from "@/features/eligibility/components/AppHeader";
 import { WorkspaceShell } from "./components/WorkspaceShell";
 import { StatusDot } from "./components/StatusDot";
-import { useJobRun } from "./hooks/useJobs";
+import { useJobDecision, useJobRun } from "./hooks/useJobs";
 import { analyzerLabel, relativeTime, statusLabel } from "./labels";
 import { IdValidationResultView } from "./components/IdValidationResult";
+import { recordDecision, type DecisionOutcome } from "./api";
 import type { AnalyzerCall } from "./types";
 
 export default function JobDetailPage() {
@@ -116,6 +119,9 @@ export default function JobDetailPage() {
               </Section>
             )}
 
+            {/* Reviewer decision — the ground-truth label for training */}
+            <DecisionSection jobId={run.id} />
+
             {/* Errors */}
             {run.errors.length > 0 && (
               <Section title="Errors">
@@ -136,6 +142,60 @@ export default function JobDetailPage() {
         )}
       </div>
     </WorkspaceShell>
+  );
+}
+
+function DecisionSection({ jobId }: { jobId: string }) {
+  const queryClient = useQueryClient();
+  const { data: decision } = useJobDecision(jobId);
+  const mutation = useMutation({
+    mutationFn: (outcome: DecisionOutcome) => recordDecision(jobId, outcome),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["workspace", "decision", jobId] }),
+  });
+
+  const current = decision?.outcome?.toLowerCase();
+
+  const btn = (active: boolean, activeCls: string) =>
+    cn(
+      "inline-flex items-center gap-1.5 rounded-md border-[0.5px] px-3 py-1.5 text-[13px] font-medium transition-colors disabled:opacity-50",
+      active ? activeCls : "border-ew-border text-ew-text-secondary hover:border-ew-border-strong",
+    );
+
+  return (
+    <Section title="Reviewer decision">
+      <div className="space-y-3 rounded-xl border-[0.5px] border-ew-border bg-ew-bg-primary p-4">
+        <p className="text-[12px] text-ew-text-tertiary">
+          Record the ground-truth outcome — this becomes a labeled training example for the
+          eligibility model.
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate("approved")}
+            className={btn(current === "approved", "border-ew-success-text/40 bg-ew-success-bg text-ew-success-text")}
+          >
+            <CheckCircle2 className="size-3.5" /> Approve
+          </button>
+          <button
+            type="button"
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate("rejected")}
+            className={btn(current === "rejected", "border-ew-danger-text/40 bg-ew-danger-bg text-ew-danger-text")}
+          >
+            <XCircle className="size-3.5" /> Reject
+          </button>
+          {mutation.isPending && <Loader2 className="size-4 animate-spin text-ew-text-tertiary" />}
+        </div>
+        {decision && (
+          <p className="text-[12px] text-ew-text-tertiary">
+            Recorded: <span className="font-medium text-ew-text-secondary">{decision.outcome}</span>
+            {decision.reviewedBy ? ` · ${decision.reviewedBy}` : ""}
+          </p>
+        )}
+      </div>
+    </Section>
   );
 }
 
