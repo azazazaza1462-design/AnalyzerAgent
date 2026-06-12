@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router";
-import { Activity, Folder, LayoutDashboard, ListChecks, Lock, LogOut, Moon, Scale, Sun, UploadCloud } from "lucide-react";
+import { Activity, AlertTriangle, Folder, LayoutDashboard, ListChecks, Lock, LogOut, Moon, Scale, Sun, UploadCloud } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +24,7 @@ const navGroups = [
       { label: "Dashboard", href: "/", icon: LayoutDashboard },
       { label: "Upload", href: "/upload", icon: UploadCloud },
       { label: "Reports", href: "/reports", icon: ListChecks },
+      { label: "Error log", href: "/errors", icon: AlertTriangle },
       { label: "Files", href: "/files", icon: Folder },
     ],
   },

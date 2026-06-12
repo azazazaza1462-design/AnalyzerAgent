@@ -5,7 +5,8 @@ import { WorkspaceShell } from "./components/WorkspaceShell";
 import { StatusDot } from "./components/StatusDot";
 import { useJobRun } from "./hooks/useJobs";
 import { analyzerLabel, relativeTime, statusLabel } from "./labels";
-import type { AnalyzerCall, CheckStatus, IdCheck, IdValidationResult } from "./types";
+import { IdValidationResultView } from "./components/IdValidationResult";
+import type { AnalyzerCall } from "./types";
 
 export default function JobDetailPage() {
   const { id } = useParams();
@@ -109,7 +110,11 @@ export default function JobDetailPage() {
             </Section>
 
             {/* Result */}
-            {run.response && <ResultView result={run.response} />}
+            {run.response && (
+              <Section title="Result">
+                <IdValidationResultView result={run.response} />
+              </Section>
+            )}
 
             {/* Errors */}
             {run.errors.length > 0 && (
@@ -131,45 +136,6 @@ export default function JobDetailPage() {
         )}
       </div>
     </WorkspaceShell>
-  );
-}
-
-function ResultView({ result }: { result: IdValidationResult }) {
-  const f = result.fields;
-  return (
-    <Section title="Result">
-      <div className="mb-4 flex items-center gap-3">
-        <span className="text-[15px] font-medium text-ew-text-primary">
-          {verdictLabel(result.verdict)}
-        </span>
-        <span className="text-[13px] text-ew-text-tertiary">
-          confidence {(result.confidence * 100).toFixed(0)}%
-        </span>
-      </div>
-
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-ew-text-tertiary">
-        Extracted fields
-      </h3>
-      <dl className="mb-5 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-[13px]">
-        <Field label="Name" value={f.fullName ?? "—"} />
-        <Field label="Date of birth" value={f.dateOfBirth ?? "—"} />
-        <Field label="Document #" value={f.documentNumber ?? "—"} />
-        <Field label="Issue" value={f.issueDate ?? "—"} />
-        <Field label="Expiry" value={f.expiryDate ?? "—"} />
-        <Field label="Document kind" value={f.documentKind ?? "—"} />
-        <Field label="Country / state" value={[f.country, f.state].filter(Boolean).join(" / ") || "—"} />
-        <Field label="Address" value={f.address ?? "—"} />
-      </dl>
-
-      <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-ew-text-tertiary">
-        Checks
-      </h3>
-      <ul className="space-y-1.5">
-        {result.checks.map((c, i) => (
-          <CheckRow key={i} check={c} />
-        ))}
-      </ul>
-    </Section>
   );
 }
 
@@ -201,24 +167,6 @@ function CallRow({ call }: { call: AnalyzerCall }) {
   );
 }
 
-const CHECK_TONE: Record<CheckStatus, string> = {
-  pass: "text-ew-success-text",
-  fail: "text-ew-danger-text",
-  borderline: "text-ew-text-primary",
-  not_applicable: "text-ew-text-tertiary",
-};
-
-function CheckRow({ check }: { check: IdCheck }) {
-  return (
-    <li className="flex items-start justify-between gap-4 text-[13px]">
-      <span className="text-ew-text-secondary">{check.detail ?? check.name}</span>
-      <span className={`shrink-0 font-medium ${CHECK_TONE[check.status]}`}>
-        {check.name} · {check.status.replace("_", " ")}
-      </span>
-    </li>
-  );
-}
-
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
@@ -239,6 +187,3 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function verdictLabel(v: IdValidationResult["verdict"]): string {
-  return { verified: "Verified", needs_review: "Needs review", rejected: "Rejected" }[v];
-}
