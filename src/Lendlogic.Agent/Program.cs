@@ -8,7 +8,10 @@ using Microsoft.Extensions.Hosting;
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.Configuration
-    .SetBasePath(Directory.GetCurrentDirectory())
+    // Base path = output directory (where appsettings.json is copied), so the
+    // worker loads its config regardless of the current working directory
+    // (e.g. `dotnet run --project ...` from the repo root).
+    .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
@@ -30,7 +33,13 @@ builder.Services.AddHttpClient<IAnalyzerApiClient, AnalyzerApiClient>((sp, http)
 builder.Services.AddSingleton<IDocumentAnalyzer, IdValidationAnalyzer>();
 builder.Services.AddScoped<JobProcessor>();
 
-builder.Services.AddHostedService<ServiceBusListenerService>();
+// Trigger: Service Bus in production, poll the API in local/dev. Defaults to
+// poll so the agent runs end-to-end without a Service Bus namespace.
+var trigger = builder.Configuration["Agent:Trigger"] ?? "poll";
+if (string.Equals(trigger, "servicebus", StringComparison.OrdinalIgnoreCase))
+    builder.Services.AddHostedService<ServiceBusListenerService>();
+else
+    builder.Services.AddHostedService<PollingJobService>();
 
 var host = builder.Build();
 
