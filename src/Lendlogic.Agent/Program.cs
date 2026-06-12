@@ -42,8 +42,24 @@ builder.Services.AddSingleton(claudeOptions);
 builder.Services.AddSingleton<IClaudeVisionClient, ClaudeVisionClient>();
 builder.Services.AddSingleton<IImageRasterizer, PdfImageRasterizer>();
 
-// External eligibility model (stub until the trained endpoint exists).
-builder.Services.AddSingleton<IEligibilityModelClient, StubEligibilityModelClient>();
+// External eligibility model: stub by default; flip to the trained model's
+// HTTP endpoint via Eligibility:Mode=http + Eligibility:Endpoint (no code change).
+var eligibilityOptions = new EligibilityModelOptions();
+builder.Configuration.GetSection(EligibilityModelOptions.SectionName).Bind(eligibilityOptions);
+builder.Services.AddSingleton(eligibilityOptions);
+if (string.Equals(eligibilityOptions.Mode, "http", StringComparison.OrdinalIgnoreCase)
+    && !string.IsNullOrWhiteSpace(eligibilityOptions.Endpoint))
+{
+    builder.Services.AddHttpClient<IEligibilityModelClient, HttpEligibilityModelClient>((_, http) =>
+    {
+        if (!string.IsNullOrWhiteSpace(eligibilityOptions.ApiKey))
+            http.DefaultRequestHeaders.Add("X-Api-Key", eligibilityOptions.ApiKey);
+    });
+}
+else
+{
+    builder.Services.AddSingleton<IEligibilityModelClient, StubEligibilityModelClient>();
+}
 
 // Analyzers (one per JobType) + the per-message orchestrator.
 builder.Services.AddSingleton<IDocumentAnalyzer, IdValidationAnalyzer>();
