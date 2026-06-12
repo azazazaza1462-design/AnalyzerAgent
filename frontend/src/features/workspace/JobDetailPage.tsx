@@ -8,6 +8,7 @@ import { StatusDot } from "./components/StatusDot";
 import { useJobDecision, useJobRun } from "./hooks/useJobs";
 import { analyzerLabel, relativeTime, statusLabel } from "./labels";
 import { IdValidationResultView } from "./components/IdValidationResult";
+import { ProvenancePanel } from "./components/ProvenancePanel";
 import { recordDecision, type DecisionOutcome } from "./api";
 import type { AnalyzerCall } from "./types";
 
@@ -121,6 +122,13 @@ export default function JobDetailPage() {
 
             {/* Reviewer decision — the ground-truth label for training */}
             <DecisionSection jobId={run.id} />
+
+            {/* Provenance — trace the verdict back to its evidence */}
+            {run.response && (
+              <Section title="Provenance">
+                <ProvenancePanel run={run} />
+              </Section>
+            )}
 
             {/* Errors */}
             {run.errors.length > 0 && (
