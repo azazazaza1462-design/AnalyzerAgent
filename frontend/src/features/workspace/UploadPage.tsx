@@ -1,14 +1,25 @@
 import { useMemo, useState } from "react";
-import { CheckCircle2, Loader2, Trash2, UploadCloud, X } from "lucide-react";
+import { Link } from "react-router";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Download,
+  Loader2,
+  Trash2,
+  UploadCloud,
+  X,
+  XCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppHeader } from "@/features/eligibility/components/AppHeader";
 import { WorkspaceShell } from "./components/WorkspaceShell";
 import { UploadDropzone } from "./components/UploadDropzone";
 import { EmptyState } from "./components/EmptyState";
+import { useJobRun } from "./hooks/useJobs";
 import { analyzerLabel, formatBytes, relativeTime } from "./labels";
 import { ANALYZER_OPTIONS, TONE_ICON, uploadOption } from "./upload-config";
-import { useUploadStore, type UploadItem, type UploadStatus } from "./stores/upload-store";
-import type { AnalyzerType } from "./types";
+import { useUploadStore, type UploadItem } from "./stores/upload-store";
+import type { AnalyzerType, JobRun } from "./types";
 
 export default function UploadPage() {
   const [analyzer, setAnalyzer] = useState<AnalyzerType>("credit_report");
@@ -116,7 +127,7 @@ export default function UploadPage() {
               {items.length > 0 && (
                 <span className="text-[12px] tabular-nums text-ew-text-tertiary">
                   {pending.length} pending
-                  {doneCount > 0 && ` · ${doneCount} uploaded`}
+                  {doneCount > 0 && ` · ${doneCount} en análisis`}
                 </span>
               )}
             </div>
@@ -171,6 +182,8 @@ export default function UploadPage() {
 
 function StagedRow({ item, onRemove }: { item: UploadItem; onRemove: () => void }) {
   const Icon = uploadOption(item.analyzer).icon;
+  // Poll the created job so the row reflects the live analysis outcome.
+  const { data: run } = useJobRun(item.jobId);
   return (
     <div className="flex items-center justify-between gap-4 rounded-xl border-[0.5px] border-ew-border bg-ew-bg-primary p-4">
       <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -190,11 +203,32 @@ function StagedRow({ item, onRemove }: { item: UploadItem; onRemove: () => void 
             {item.mime} · {formatBytes(item.size)}
             {item.uploadedAt && ` · ${relativeTime(item.uploadedAt)}`}
           </div>
+          {item.status === "error" && item.error && (
+            <div className="text-[12px] text-ew-danger-text">{item.error}</div>
+          )}
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-3">
-        <StatusBadge status={item.status} />
+      <div className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={() => downloadItem(item)}
+          aria-label={`Download ${item.name}`}
+          title="Descargar documento"
+          className="rounded-md p-1 text-ew-text-tertiary transition-colors hover:text-ew-text-primary"
+        >
+          <Download className="size-4" />
+        </button>
+        {item.status === "done" && item.jobId && (
+          <Link
+            to={`/jobs/${item.jobId}`}
+            className="inline-flex items-center gap-1 text-[12px] font-medium text-ew-text-secondary transition-colors hover:text-ew-text-primary"
+          >
+            Ver análisis
+            <ArrowUpRight className="size-3.5" />
+          </Link>
+        )}
+        <ItemBadge item={item} run={run} />
         {item.status !== "uploading" && (
           <button
             type="button"
@@ -210,30 +244,98 @@ function StagedRow({ item, onRemove }: { item: UploadItem; onRemove: () => void 
   );
 }
 
-function StatusBadge({ status }: { status: UploadStatus }) {
-  if (status === "uploading") {
-    return <Loader2 className="size-4 animate-spin text-ew-text-tertiary" />;
-  }
-  if (status === "done") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-md border-[0.5px] border-ew-success-text/30 bg-ew-success-bg px-1.5 py-0.5 text-[11px] font-medium text-ew-success-text">
-        <CheckCircle2 className="size-3" />
-        Uploaded
-      </span>
-    );
-  }
-  if (status === "error") {
-    return (
-      <span className="inline-flex items-center rounded-md border-[0.5px] border-ew-danger-text/30 bg-ew-danger-bg px-1.5 py-0.5 text-[11px] font-medium text-ew-danger-text">
-        Failed
-      </span>
-    );
-  }
+// Download the in-memory file the user staged (no server round-trip; the
+// /files/{id} endpoint is agent-only).
+function downloadItem(item: UploadItem) {
+  const url = URL.createObjectURL(item.file);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = item.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+type BadgeTone = "green" | "red" | "amber" | "neutral";
+
+const TONE_CLASS: Record<BadgeTone, string> = {
+  green: "border-ew-success-text/30 bg-ew-success-bg text-ew-success-text",
+  red: "border-ew-danger-text/30 bg-ew-danger-bg text-ew-danger-text",
+  amber: "border-ew-border bg-ew-bg-secondary text-ew-text-primary",
+  neutral: "border-ew-border bg-ew-bg-secondary text-ew-text-secondary",
+};
+
+function Badge({ tone, children }: { tone: BadgeTone; children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-md border-[0.5px] border-ew-border bg-ew-bg-secondary px-1.5 py-0.5 text-[11px] font-medium text-ew-text-secondary">
-      Ready
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-md border-[0.5px] px-1.5 py-0.5 text-[11px] font-medium",
+        TONE_CLASS[tone],
+      )}
+    >
+      {children}
     </span>
   );
+}
+
+// Merges upload state with the live analysis outcome. Spins while uploading or
+// analyzing; turns green (verified), amber (needs review) or red (rejected /
+// failed) once the run completes.
+function ItemBadge({ item, run }: { item: UploadItem; run?: JobRun }) {
+  if (item.status === "uploading") {
+    return <Loader2 className="size-4 animate-spin text-ew-text-tertiary" />;
+  }
+  if (item.status === "error") {
+    return <Badge tone="red">Failed</Badge>;
+  }
+  if (item.status !== "done") return null; // staged: no badge
+
+  const status = run?.status;
+  if (!status || status === "pending" || status === "in_progress") {
+    return (
+      <Badge tone="neutral">
+        <Loader2 className="size-3 animate-spin" />
+        Analizando
+      </Badge>
+    );
+  }
+  if (status === "failed") {
+    return (
+      <Badge tone="red">
+        <XCircle className="size-3" />
+        Falló
+      </Badge>
+    );
+  }
+  if (status === "cancelled") return <Badge tone="neutral">Cancelado</Badge>;
+
+  // completed — color by verdict
+  switch (run?.response?.verdict) {
+    case "verified":
+      return (
+        <Badge tone="green">
+          <CheckCircle2 className="size-3" />
+          Verificado
+        </Badge>
+      );
+    case "rejected":
+      return (
+        <Badge tone="red">
+          <XCircle className="size-3" />
+          Rechazado
+        </Badge>
+      );
+    case "needs_review":
+      return <Badge tone="amber">Revisar</Badge>;
+    default:
+      return (
+        <Badge tone="green">
+          <CheckCircle2 className="size-3" />
+          Analizado
+        </Badge>
+      );
+  }
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {

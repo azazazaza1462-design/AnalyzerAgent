@@ -2,10 +2,27 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchDocuments,
   fetchJobQueueSummary,
+  fetchJobRun,
   fetchJobs,
   type DocumentsListParams,
   type JobsListParams,
 } from "../api";
+
+export function useJobRun(id: string | undefined) {
+  return useQuery({
+    queryKey: ["workspace", "job", id],
+    queryFn: () => fetchJobRun(id!),
+    enabled: !!id,
+    // While a run is in flight the agent is still writing — refetch so the
+    // timeline and result fill in without a manual reload.
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === "completed" || status === "failed" || status === "cancelled"
+        ? false
+        : 4000;
+    },
+  });
+}
 
 export function useJobQueueSummary() {
   return useQuery({
