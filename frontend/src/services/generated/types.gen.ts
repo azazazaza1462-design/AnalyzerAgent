@@ -78,7 +78,7 @@ export type JobSummary = {
   finishedAt?: string | null;
 };
 
-export type JobType = 0 | 1 | 2;
+export type JobType = 0 | 1 | 2 | 3;
 
 export type MeResponse = {
   userId?: string;

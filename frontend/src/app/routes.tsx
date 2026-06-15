@@ -4,6 +4,8 @@ import { ProtectedRoute } from "@/components/layout/protected-route";
 import LoginPage from "@/features/auth/LoginPage";
 import DashboardPage from "@/features/workspace/DashboardPage";
 import ReportsPage from "@/features/workspace/ReportsPage";
+import JobDetailPage from "@/features/workspace/JobDetailPage";
+import ErrorLogPage from "@/features/workspace/ErrorLogPage";
 import FilesPage from "@/features/workspace/FilesPage";
 import UploadPage from "@/features/workspace/UploadPage";
 import QueuePage from "@/features/eligibility/QueuePage";
@@ -39,6 +41,8 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: "reports", element: <ReportsPage /> },
+          { path: "jobs/:id", element: <JobDetailPage /> },
+          { path: "errors", element: <ErrorLogPage /> },
           { path: "files", element: <FilesPage /> },
           { path: "upload", element: <UploadPage /> },
           {

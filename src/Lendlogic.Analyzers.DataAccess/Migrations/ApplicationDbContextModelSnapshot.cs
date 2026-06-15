@@ -19,7 +19,7 @@ namespace Lendlogic.Analyzers.DataAccess.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("app")
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -178,6 +178,53 @@ namespace Lendlogic.Analyzers.DataAccess.Migrations
                     b.ToTable("jobs", "app");
                 });
 
+            modelBuilder.Entity("Lendlogic.Analyzers.DataAccess.Entities.JobDecision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("note");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("outcome");
+
+                    b.Property<string>("ReviewedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reviewed_by");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_job_decisions");
+
+                    b.HasIndex("JobId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_job_decisions_job_id");
+
+                    b.ToTable("job_decisions", "app");
+                });
+
             modelBuilder.Entity("Lendlogic.Analyzers.DataAccess.Entities.JobResult", b =>
                 {
                     b.Property<Guid>("Id")
@@ -333,6 +380,18 @@ namespace Lendlogic.Analyzers.DataAccess.Migrations
                         .HasConstraintName("fk_jobs_callers_caller_id");
 
                     b.Navigation("Caller");
+                });
+
+            modelBuilder.Entity("Lendlogic.Analyzers.DataAccess.Entities.JobDecision", b =>
+                {
+                    b.HasOne("Lendlogic.Analyzers.DataAccess.Entities.Job", "Job")
+                        .WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_job_decisions_jobs_job_id");
+
+                    b.Navigation("Job");
                 });
 
             modelBuilder.Entity("Lendlogic.Analyzers.DataAccess.Entities.JobResult", b =>

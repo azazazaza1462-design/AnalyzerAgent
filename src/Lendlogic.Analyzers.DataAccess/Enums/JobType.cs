@@ -5,4 +5,5 @@ public enum JobType
     CreditAnalysis,
     RiskAssessment,
     FraudDetection,
+    IdValidation,
 }

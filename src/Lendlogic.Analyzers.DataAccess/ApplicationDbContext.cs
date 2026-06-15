@@ -11,6 +11,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Caller> Callers => Set<Caller>();
     public DbSet<Job> Jobs => Set<Job>();
     public DbSet<JobResult> JobResults => Set<JobResult>();
+    public DbSet<JobDecision> JobDecisions => Set<JobDecision>();
     public DbSet<FileAsset> Files => Set<FileAsset>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

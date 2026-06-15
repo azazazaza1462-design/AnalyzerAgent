@@ -346,7 +346,7 @@ function GroupedJobs({ jobs }: { jobs: AnalyzerJob[] }) {
             <ul className="space-y-2">
               {group.map((job) => (
                 <li key={job.id}>
-                  <JobRow job={job} href="/reports" />
+                  <JobRow job={job} href={`/jobs/${job.id}`} />
                 </li>
               ))}
             </ul>

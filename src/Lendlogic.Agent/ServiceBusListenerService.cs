@@ -1,5 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -9,13 +10,18 @@ public class ServiceBusListenerService : BackgroundService
 {
     private readonly ILogger<ServiceBusListenerService> _logger;
     private readonly IConfiguration _configuration;
+    private readonly IServiceScopeFactory _scopeFactory;
     private ServiceBusProcessor? _processor;
     private ServiceBusClient? _client;
 
-    public ServiceBusListenerService(ILogger<ServiceBusListenerService> logger, IConfiguration configuration)
+    public ServiceBusListenerService(
+        ILogger<ServiceBusListenerService> logger,
+        IConfiguration configuration,
+        IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
         _configuration = configuration;
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -90,8 +96,14 @@ public class ServiceBusListenerService : BackgroundService
                 args.Message.EnqueuedTime,
                 args.Message.LockedUntil);
 
-            // TODO: Process your message here
-            // Example: await ProcessBusinessLogic(body);
+            // The message is a trigger only — claiming the actual job is
+            // pull-based on the API side. Resolve a scoped JobProcessor per
+            // message (the typed API client and analyzers live in DI).
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var processor = scope.ServiceProvider.GetRequiredService<JobProcessor>();
+                await processor.ProcessNextAsync(Environment.MachineName, args.CancellationToken);
+            }
 
             if (!_configuration.GetValue<bool>("ServiceBus:AutoCompleteMessages", false))
             {
