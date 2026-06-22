@@ -8,7 +8,7 @@ import type {
   AnalyzerJob,
   AnalyzerType,
   DocumentRecord,
-  IdValidationResult,
+  IdentityDocumentResult,
   JobRun,
   JobStatus,
   StatusEvent,
@@ -71,7 +71,7 @@ export function summaryToJob(s: JobSummary): AnalyzerJob {
 /** Full run for the detail page: JobDetail + (optional) result_data + error. */
 export function detailToRun(
   d: JobDetail,
-  result?: IdValidationResult | null,
+  result?: IdentityDocumentResult | null,
   error?: string | null,
 ): JobRun {
   const content = (d.content ?? {}) as ContentShape;
@@ -100,7 +100,6 @@ export function detailToRun(
       attachments,
       losData: content.losData,
     },
-    calls: result?.calls ?? [],
     statusHistory,
     response: result ?? undefined,
     errors: error ? [error] : [],

@@ -310,32 +310,16 @@ function ItemBadge({ item, run }: { item: UploadItem; run?: JobRun }) {
   }
   if (status === "cancelled") return <Badge tone="neutral">Cancelado</Badge>;
 
-  // completed — color by verdict
-  switch (run?.response?.verdict) {
-    case "verified":
-      return (
-        <Badge tone="green">
-          <CheckCircle2 className="size-3" />
-          Verificado
-        </Badge>
-      );
-    case "rejected":
-      return (
-        <Badge tone="red">
-          <XCircle className="size-3" />
-          Rechazado
-        </Badge>
-      );
-    case "needs_review":
-      return <Badge tone="amber">Revisar</Badge>;
-    default:
-      return (
-        <Badge tone="green">
-          <CheckCircle2 className="size-3" />
-          Analizado
-        </Badge>
-      );
+  // completed — color by the manual-review gate
+  if (run?.response?.requiresManualReview) {
+    return <Badge tone="amber">Revisar</Badge>;
   }
+  return (
+    <Badge tone="green">
+      <CheckCircle2 className="size-3" />
+      Verificado
+    </Badge>
+  );
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {

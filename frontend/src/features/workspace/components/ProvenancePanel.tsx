@@ -1,26 +1,6 @@
 import { useJobDecision } from "../hooks/useJobs";
 import type { JobRun } from "../types";
 
-// Which extracted field(s) each check traces back to — makes the decision
-// auditable end-to-end.
-const CHECK_SOURCE: Record<string, string> = {
-  expiry: "expiryDate",
-  mrz_checksum: "MRZ line",
-  field_consistency: "issueDate + expiryDate",
-  authenticity: "document image",
-  name_match: "fullName ↔ LOS name",
-  dob_match: "dateOfBirth ↔ LOS DOB",
-};
-
-const CHECK_LABEL: Record<string, string> = {
-  expiry: "Expiry",
-  mrz_checksum: "MRZ checksum",
-  field_consistency: "Field consistency",
-  authenticity: "Authenticity",
-  name_match: "Name match",
-  dob_match: "DOB match",
-};
-
 interface Stage {
   stage: string;
   title: string;
@@ -28,9 +8,9 @@ interface Stage {
   items?: string[];
 }
 
-// Renders the lineage of an ID decision so a reviewer can trace the verdict
-// back to its evidence: document → extraction → checks → eligibility → verdict
-// → decision. Built entirely from data the run already persists.
+// Renders the lineage of an ID decision so a reviewer can trace the outcome back
+// to its evidence: document → extraction → MRZ checksum → manual-review gate →
+// reviewer decision. Built entirely from data the run already persists.
 export function ProvenancePanel({ run }: { run: JobRun }) {
   const { data: decision } = useJobDecision(run.id);
   const result = run.response;
@@ -38,8 +18,13 @@ export function ProvenancePanel({ run }: { run: JobRun }) {
     return <p className="text-[13px] text-ew-text-tertiary">Available once the run completes.</p>;
   }
 
-  const extract = run.calls.find((c) => c.step === "extract");
-  const f = result.fields;
+  const fullName = [result.firstName, result.lastName].filter(Boolean).join(" ");
+  const mrz =
+    result.mrzChecksumValid === true
+      ? "pass — check digits valid (TD3)"
+      : result.mrzChecksumValid === false
+        ? "fail — check digits do not validate"
+        : "n/a — no recognised MRZ";
 
   const stages: Stage[] = [
     {
@@ -50,47 +35,29 @@ export function ProvenancePanel({ run }: { run: JobRun }) {
     {
       stage: "Extraction",
       title: "Fields read from the document",
-      detail: extract
-        ? `Claude ${extract.model ?? "vision"} · ${extract.inputTokens}/${extract.outputTokens} tok · ${(extract.durationMs / 1000).toFixed(1)}s`
-        : undefined,
+      detail: `Claude vision · ${Math.round(result.overallConfidence * 100)}% confidence`,
       items: [
-        f.fullName && `name: ${f.fullName}`,
-        f.dateOfBirth && `dob: ${f.dateOfBirth}`,
-        f.documentNumber && `doc #: ${f.documentNumber}`,
-        f.expiryDate && `expiry: ${f.expiryDate}`,
+        fullName && `name: ${fullName}`,
+        result.dateOfBirth && `dob: ${result.dateOfBirth}`,
+        result.documentNumber && `doc #: ${result.documentNumber}`,
+        result.dateOfExpiry && `expiry: ${result.dateOfExpiry}`,
       ].filter(Boolean) as string[],
     },
     {
-      stage: "Validation",
-      title: "Checks",
-      items: result.checks.map(
-        (c) =>
-          `${CHECK_LABEL[c.name] ?? c.name}: ${c.status.replace("_", " ")} — from ${CHECK_SOURCE[c.name] ?? "document"}`,
-      ),
+      stage: "MRZ checksum",
+      title: mrz,
+    },
+    {
+      stage: "Manual-review gate",
+      title: result.requiresManualReview ? "Needs manual review" : "Clean — no flags",
+      items: result.reviewReasons,
+    },
+    {
+      stage: "Reviewer decision",
+      title: decision ? decision.outcome : "Pending",
+      detail: decision?.reviewedBy ? `by ${decision.reviewedBy}` : undefined,
     },
   ];
-
-  if (result.eligibility) {
-    stages.push({
-      stage: "Eligibility model",
-      title: `${result.eligibility.verdict.replace("_", " ")} · ${Math.round(result.eligibility.score * 100)}%`,
-      detail: `${result.eligibility.modelVersion}`,
-      items: result.eligibility.contributions.map(
-        (c) => `${c.feature.replace(/_/g, " ")}: ${c.contribution >= 0 ? "+" : ""}${c.contribution.toFixed(2)}`,
-      ),
-    });
-  }
-
-  stages.push({
-    stage: "Verdict",
-    title: `${result.verdict.replace("_", " ")} · ${Math.round(result.confidence * 100)}% confidence`,
-  });
-
-  stages.push({
-    stage: "Reviewer decision",
-    title: decision ? decision.outcome : "Pending",
-    detail: decision?.reviewedBy ? `by ${decision.reviewedBy}` : undefined,
-  });
 
   return (
     <ol className="relative ml-1 space-y-0 border-l-[0.5px] border-ew-border pl-5">

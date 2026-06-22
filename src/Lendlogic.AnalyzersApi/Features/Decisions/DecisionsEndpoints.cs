@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Carter;
 using Lendlogic.Analyzers.DataAccess;
@@ -85,14 +86,14 @@ public class DecisionsEndpoints : ICarterModule
             {
                 if (!latestByJob.TryGetValue(d.JobId, out var result) || result.ResultData is null)
                     continue;
-                if (!result.ResultData.RootElement.TryGetProperty("features", out var features)
-                    || features.ValueKind != JsonValueKind.Object)
+                var root = result.ResultData.RootElement;
+                if (root.ValueKind != JsonValueKind.Object)
                     continue;
 
                 examples.Add(new TrainingExample(
                     d.JobId,
                     d.Outcome.ToString().ToLowerInvariant(),
-                    features.Clone()));
+                    BuildFeatures(root)));
             }
 
             return Results.Ok(new { count = examples.Count, examples });
@@ -111,6 +112,40 @@ public class DecisionsEndpoints : ICarterModule
             dataset.RequireAuthorization();
         }
     }
+
+    // Derives the labeled-dataset feature vector from the flat ID result shape
+    // (the analyzer no longer emits a dedicated "features" block).
+    private static JsonElement BuildFeatures(JsonElement root)
+    {
+        var features = new Dictionary<string, object?>
+        {
+            ["document_type"] = GetString(root, "documentType"),
+            ["overall_confidence"] = GetDecimal(root, "overallConfidence"),
+            ["mrz_checksum_valid"] = GetNullableBool(root, "mrzChecksumValid"),
+            ["requires_manual_review"] = GetBool(root, "requiresManualReview"),
+            ["document_expired"] = IsExpired(GetString(root, "dateOfExpiry")),
+        };
+        return JsonSerializer.SerializeToElement(features);
+    }
+
+    private static string? GetString(JsonElement root, string name) =>
+        root.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+
+    private static decimal GetDecimal(JsonElement root, string name) =>
+        root.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number ? v.GetDecimal() : 0m;
+
+    private static bool GetBool(JsonElement root, string name) =>
+        root.TryGetProperty(name, out var v)
+            && (v.ValueKind == JsonValueKind.True || v.ValueKind == JsonValueKind.False) && v.GetBoolean();
+
+    private static bool? GetNullableBool(JsonElement root, string name) =>
+        root.TryGetProperty(name, out var v) && (v.ValueKind == JsonValueKind.True || v.ValueKind == JsonValueKind.False)
+            ? v.GetBoolean()
+            : null;
+
+    private static bool IsExpired(string? isoDate) =>
+        DateOnly.TryParse(isoDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)
+            && d < DateOnly.FromDateTime(DateTime.UtcNow);
 }
 
 public sealed record RecordDecisionBody(string Outcome, string? ReviewedBy, string? Note);
