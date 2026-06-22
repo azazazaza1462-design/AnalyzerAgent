@@ -27,15 +27,27 @@ public sealed class ClaudeVisionClient : IClaudeVisionClient
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var blocks = new List<ContentBlockParam>(request.Images.Count + 1);
-        foreach (var image in request.Images)
+        var blocks = new List<ContentBlockParam>(request.Media.Count + 1);
+        foreach (var item in request.Media)
         {
-            blocks.Add(new ContentBlockParam(new ImageBlockParam(
-                new ImageBlockParamSource(new Base64ImageSource
+            var mediaType = (item.MediaType ?? string.Empty).ToLowerInvariant();
+            if (mediaType == "application/pdf")
+            {
+                // PDFs go in as a native document block (no rasterization).
+                blocks.Add(new ContentBlockParam(new DocumentBlockParam
                 {
-                    Data = Convert.ToBase64String(image.Data),
-                    MediaType = ToMediaType(image.MediaType),
-                }))));
+                    Source = new Base64PdfSource { Data = Convert.ToBase64String(item.Data) },
+                }));
+            }
+            else
+            {
+                blocks.Add(new ContentBlockParam(new ImageBlockParam(
+                    new ImageBlockParamSource(new Base64ImageSource
+                    {
+                        Data = Convert.ToBase64String(item.Data),
+                        MediaType = ToImageMediaType(mediaType),
+                    }))));
+            }
         }
         blocks.Add(new ContentBlockParam(new TextBlockParam(request.UserText)));
 
@@ -80,11 +92,12 @@ public sealed class ClaudeVisionClient : IClaudeVisionClient
         return dict;
     }
 
-    private static MediaType ToMediaType(string mediaType) => mediaType.ToLowerInvariant() switch
+    private static MediaType ToImageMediaType(string mediaType) => mediaType switch
     {
         "image/png" => MediaType.ImagePng,
         "image/jpeg" or "image/jpg" => MediaType.ImageJpeg,
         "image/gif" => MediaType.ImageGif,
+        "image/webp" => MediaType.ImageWebP,
         _ => throw new NotSupportedException($"Unsupported image media type: {mediaType}"),
     };
 }

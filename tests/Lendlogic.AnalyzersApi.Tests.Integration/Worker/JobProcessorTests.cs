@@ -69,7 +69,7 @@ public sealed class JobProcessorTests(PostgresFixture fixture) : IAsyncLifetime
 
         // The analyzer's result is persisted verbatim as result_data (camelCase props).
         var root = result.ResultData!.RootElement;
-        root.GetProperty("verdict").GetString().Should().Be("verified");
+        root.GetProperty("documentType").GetString().Should().Be("passport");
     }
 
     [Fact]
@@ -117,6 +117,6 @@ public sealed class JobProcessorTests(PostgresFixture fixture) : IAsyncLifetime
             AnalyzerMessagePayload payload,
             IReadOnlyList<AnalyzerFile> files,
             CancellationToken cancellationToken)
-            => Task.FromResult<object>(new { verdict = "verified" });
+            => Task.FromResult<object>(new { documentType = "passport", requiresManualReview = false });
     }
 }

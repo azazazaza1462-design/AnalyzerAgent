@@ -8,7 +8,7 @@ import { detailToRun, fileToDocument, summaryToJob } from "./mappers";
 import type {
   AnalyzerJob,
   DocumentRecord,
-  IdValidationResult,
+  IdentityDocumentResult,
   JobQueueSummary,
   JobRun,
   JobStatus,
@@ -55,14 +55,14 @@ export async function fetchJobRun(id: string): Promise<JobRun> {
   const detail = data as unknown as JobDetail | undefined;
   if (error || !detail) throw new Error("Failed to load job.");
 
-  let result: IdValidationResult | null = null;
+  let result: IdentityDocumentResult | null = null;
   let failure: string | null = null;
 
   if (detail.hasResult) {
     const { data } = await getJobResult({ path: { id } });
     const blob = data as Record<string, unknown> | null;
     if (blob && typeof blob === "object") {
-      if ("verdict" in blob) result = blob as unknown as IdValidationResult;
+      if ("documentType" in blob) result = blob as unknown as IdentityDocumentResult;
       else if ("error" in blob) failure = String(blob.error);
     }
   }

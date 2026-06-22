@@ -8,6 +8,25 @@ namespace Lendlogic.Agent.Core.Analysis;
 internal static class Mrz
 {
     /// <summary>
+    /// Validates a full raw MRZ (one or more lines). Splits the text and, when it
+    /// is a TD3 / passport layout (two 44-char lines), validates line 2's check
+    /// digits. Returns null when the input is absent or not a recognised layout
+    /// (nothing to check — defer to confidence + human review).
+    /// </summary>
+    public static bool? Validate(string? mrz)
+    {
+        if (string.IsNullOrWhiteSpace(mrz)) return null;
+
+        var lines = mrz.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        // TD3 / passport: two lines of 44 characters.
+        if (lines.Length == 2 && lines[0].Length == 44 && lines[1].Length == 44)
+            return ValidateTd3(lines[1]);
+
+        return null;
+    }
+
+    /// <summary>
     /// Returns true/false when line 2 is a parseable TD3 line and its check digits
     /// validate; null when the input isn't a TD3 MRZ line (check is not applicable).
     /// </summary>

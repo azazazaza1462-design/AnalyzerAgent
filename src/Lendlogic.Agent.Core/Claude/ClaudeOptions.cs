@@ -19,6 +19,12 @@ public sealed class ClaudeOptions
 
     public int MaxTokens { get; set; } = 2048;
 
+    /// <summary>
+    /// Extractions whose overall confidence falls below this are flagged for a
+    /// human. A business risk control, not a model setting.
+    /// </summary>
+    public decimal ManualReviewConfidenceThreshold { get; set; } = 0.85m;
+
     /// <summary>True when an API key is configured; the analyzer requires this to run.</summary>
     public bool IsConfigured => !string.IsNullOrWhiteSpace(ApiKey);
 }

@@ -10,7 +10,6 @@ import { analyzerLabel, relativeTime, statusLabel } from "./labels";
 import { IdValidationResultView } from "./components/IdValidationResult";
 import { ProvenancePanel } from "./components/ProvenancePanel";
 import { recordDecision, type DecisionOutcome } from "./api";
-import type { AnalyzerCall } from "./types";
 
 export default function JobDetailPage() {
   const { id } = useParams();
@@ -99,18 +98,6 @@ export default function JobDetailPage() {
                   </li>
                 ))}
               </ol>
-            </Section>
-
-            {/* Calls */}
-            <Section title={`Steps (${run.calls.length})`}>
-              <ul className="space-y-2">
-                {run.calls.map((call, i) => (
-                  <CallRow key={i} call={call} />
-                ))}
-                {run.calls.length === 0 && (
-                  <li className="text-[13px] text-ew-text-tertiary">No steps recorded.</li>
-                )}
-              </ul>
             </Section>
 
             {/* Result */}
@@ -204,34 +191,6 @@ function DecisionSection({ jobId }: { jobId: string }) {
         )}
       </div>
     </Section>
-  );
-}
-
-function CallRow({ call }: { call: AnalyzerCall }) {
-  const seconds = (call.durationMs / 1000).toFixed(call.durationMs >= 1000 ? 1 : 2);
-  return (
-    <li
-      className={`rounded-lg border-[0.5px] px-3 py-2.5 ${
-        call.success ? "border-ew-border bg-ew-bg-primary" : "border-ew-danger-text/30 bg-ew-danger-bg/30"
-      }`}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-[13px] font-medium text-ew-text-primary">{call.label}</span>
-        <span className="shrink-0 font-mono text-[11px] text-ew-text-tertiary">{seconds}s</span>
-      </div>
-      <div className="mt-0.5 flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-ew-text-tertiary">
-        <span>{call.step}</span>
-        <span aria-hidden>·</span>
-        <span>{call.model ?? "deterministic"}</span>
-        {(call.inputTokens > 0 || call.outputTokens > 0) && (
-          <>
-            <span aria-hidden>·</span>
-            <span>in {call.inputTokens} / out {call.outputTokens} tok</span>
-          </>
-        )}
-      </div>
-      {call.error && <div className="mt-1 text-[12px] text-ew-danger-text">{call.error}</div>}
-    </li>
   );
 }
 

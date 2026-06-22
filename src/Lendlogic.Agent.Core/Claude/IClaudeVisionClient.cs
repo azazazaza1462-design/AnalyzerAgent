@@ -14,16 +14,17 @@ public interface IClaudeVisionClient
         CancellationToken cancellationToken);
 }
 
-/// <summary>One image sent to Claude. <see cref="MediaType"/> is an HTTP media
-/// type ("image/png", "image/jpeg", "image/webp", "image/gif").</summary>
-public sealed record ClaudeImage(string MediaType, byte[] Data);
+/// <summary>One media item sent to Claude. <see cref="MediaType"/> is an HTTP
+/// media type: an image ("image/png", "image/jpeg", "image/webp", "image/gif")
+/// sent as an image block, or "application/pdf" sent as a native document block.</summary>
+public sealed record ClaudeMedia(string MediaType, byte[] Data);
 
 /// <summary>A single structured vision call.</summary>
 public sealed record ClaudeVisionRequest
 {
     public required string SystemPrompt { get; init; }
     public required string UserText { get; init; }
-    public required IReadOnlyList<ClaudeImage> Images { get; init; }
+    public required IReadOnlyList<ClaudeMedia> Media { get; init; }
 
     /// <summary>JSON Schema the response must conform to (output_config.format).</summary>
     public required JsonElement OutputSchema { get; init; }
