@@ -1,5 +1,6 @@
 # Analyzers Frontend
 
+
 React 19 + TypeScript SPA built with Vite. Companion UI for the Analyzers Web API in `../src/Lendlogic.AnalyzersApi`.
 
 Renders a Jobs list (filters, pagination) and detail page (`/jobs`, `/jobs/:id`) backed by the user-facing endpoints in the API.
